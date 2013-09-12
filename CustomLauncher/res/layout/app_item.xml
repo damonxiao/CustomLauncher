@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:clickable="false"
+    android:gravity="center"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:id="@+id/app_left_right_item_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:gravity="center"
+        android:orientation="horizontal" 
+        android:visibility="visible">
+
+        <com.seuic.launcher.widget.AppInfoView
+            android:id="@+id/app_left_item"
+            android:layout_width="@dimen/icon_view_height_width"
+            android:layout_height="@dimen/icon_view_height_width"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+
+        <com.seuic.launcher.widget.AppInfoView
+            android:id="@+id/app_right_item"
+            android:layout_width="@dimen/icon_view_height_width"
+            android:layout_height="@dimen/icon_view_height_width"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+    </LinearLayout>
+
+    <com.seuic.launcher.widget.AppInfoView
+        android:id="@+id/app_one_line_item"
+        android:layout_width="@dimen/icon_one_line_view_width"
+        android:layout_height="@dimen/icon_view_height_width"
+        android:layout_gravity="center"
+        android:visibility="visible" />
+
+</LinearLayout>
