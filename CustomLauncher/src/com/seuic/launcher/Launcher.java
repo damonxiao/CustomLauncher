@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
+import android.view.KeyEvent;
 
 import com.seuic.launcher.util.AppLoader;
 import com.seuic.launcher.util.Logger;
@@ -145,6 +146,14 @@ public class Launcher extends Activity{
         return appInfos;
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_BACK){
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+    
     @Override
     protected void onDestroy() {
         super.onDestroy();
