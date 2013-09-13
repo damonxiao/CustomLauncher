@@ -2,15 +2,11 @@
 package com.seuic.launcher.widget;
 
 import android.content.Context;
-import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.seuic.launcher.R;
 
@@ -22,13 +18,11 @@ public class AppListAdapter extends BaseAdapter {
 
     private LayoutInflater mInflater;
     
-    private Context mContext;
 
     public AppListAdapter(List<List<AppItem>> items, Context context) {
         super();
         this.mItems = items;
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        mContext = context;
     }
 
     public void refreshData(List<List<AppItem>> allApps){
