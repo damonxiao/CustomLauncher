@@ -1,14 +1,16 @@
 package com.seuic.launcher;
 
 import android.app.Activity;
-import android.content.ComponentName;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 
+import com.seuic.launcher.util.AppLoader;
 import com.seuic.launcher.util.Logger;
-import com.seuic.launcher.util.NumberUtil;
 import com.seuic.launcher.widget.AppInfo;
 import com.seuic.launcher.widget.AppInfo.AppSize;
 import com.seuic.launcher.widget.AppItem;
@@ -30,6 +32,8 @@ public class Launcher extends Activity{
     
     private AppListAdapter mAdapter;
     
+    private PackageStateReceiver mPackageStateReceiver;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +43,7 @@ public class Launcher extends Activity{
         loadApplications(false);
         mAdapter = new AppListAdapter(mAllApps, this);
         mAllAppsList.setAdapter(mAdapter);
+        regReceiver();
     }
     
     /**
@@ -67,10 +72,12 @@ public class Launcher extends Activity{
                 AppItem previousItem = !items.isEmpty()?items.get(items.size()-1):null;
             if (previousPosApp != null && previousPosApp.getAppSize() == AppSize.small) {
                 if (application.getAppSize() == AppSize.small
-                        && previousItem.getRightItem() == null) {
+                        && previousItem != null && previousItem.getRightItem() == null)
+                {
                     items.get(items.size() - 1).setRightItem(application);
                 } else if (application.getAppSize() == AppSize.small
-                        && previousItem.getRightItem() != null) {
+                        && ((previousItem != null && previousItem.getRightItem() != null)
+                        || previousItem == null)) {
                     item.setLeftItem(application);
                     item.setItemType(ItemType.LEFT_RIGHT);
                     items.add(item);
@@ -131,31 +138,64 @@ public class Launcher extends Activity{
         if (apps != null) {
             final int count = apps.size();
             for (int i = 0; i < count; i++) {
-                AppInfo application = new AppInfo();
                 ResolveInfo info = apps.get(i);
-
-                application.setTitle(info.loadLabel(manager));
-                application.setActivity(new ComponentName(
-                        info.activityInfo.applicationInfo.packageName,
-                        info.activityInfo.name),
-                        Intent.FLAG_ACTIVITY_NEW_TASK
-                                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                application.setIcon(info.activityInfo.loadIcon(manager));
-                application.setAppSize(getAppSizeByPos(i));
-                appInfos.add(application);
+                appInfos.add(AppLoader.loadAppInfo(info, this, manager));
             }
         }
         return appInfos;
     }
-    
-    private AppSize getAppSizeByPos(int position){
-        AppSize size = AppSize.small;
-        if(NumberUtil.isPrime(position)){
-            size = AppSize.small;
-        }
-        else {
-            size = AppSize.large;
-        }
-        return size;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Logger.d(TAG, "onDestroy()");
+        unregReceiver();
     }
+    
+    private void regReceiver(){
+        Logger.d(TAG, "regReceiver()");
+        if(mPackageStateReceiver == null){
+            mPackageStateReceiver = new PackageStateReceiver();
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(Intent.ACTION_PACKAGE_ADDED);
+            filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+            filter.addAction(Intent.ACTION_PACKAGE_ADDED);
+            filter.addDataScheme("package");
+            registerReceiver(mPackageStateReceiver, filter);
+        }
+    }
+    
+    private void unregReceiver(){
+        Logger.d(TAG, "unregReceiver()");
+        if(mPackageStateReceiver != null){
+            unregisterReceiver(mPackageStateReceiver);
+            mPackageStateReceiver = null;
+        }
+    }
+    
+    private void reloadApps(){
+        loadApplications(false);
+        mAdapter.refreshData(mAllApps);
+    }
+    
+    private class PackageStateReceiver extends BroadcastReceiver {
+
+        /**
+         * Call from the handler for ACTION_PACKAGE_ADDED, ACTION_PACKAGE_REMOVED and
+         * ACTION_PACKAGE_CHANGED.
+         */
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Logger.d(TAG, "PackageStateReceiver.onReceive() intent=" + intent);
+            final String action = intent.getAction();
+
+            if (Intent.ACTION_PACKAGE_CHANGED.equals(action)
+                    || Intent.ACTION_PACKAGE_REMOVED.equals(action)
+                    || Intent.ACTION_PACKAGE_ADDED.equals(action)) {
+                reloadApps();
+            }
+        }
+        
+    }
+    
 }

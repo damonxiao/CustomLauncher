@@ -114,6 +114,10 @@ public class AppInfoView extends FrameLayout implements OnClickListener {
             ((ImageView) (findViewById(R.id.icon)))
             .setImageDrawable(mAppIno.getIcon());
         }
+        if (mAppIno != null) {
+            findViewById(R.id.icon_view_root).setBackgroundColor(
+                    getContext().getResources().getColor(mAppIno.getIconBgColor()));
+        }
         if(mAppIno != null && mAppIno.getTitle() != null){
             ((TextView) (findViewById(R.id.label)))
             .setText(mAppIno.getTitle());

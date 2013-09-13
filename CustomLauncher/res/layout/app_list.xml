@@ -19,7 +19,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/launcher_bg"
+    android:background="@color/black"
     android:layout_gravity="center"
     android:gravity="center">
 
@@ -29,8 +29,8 @@
         android:alwaysDrawnWithCache="true"
         android:scrollbars="horizontal"
         android:drawSelectorOnTop="false"
-        android:listSelector="@drawable/grid_selector"
-        android:layout_height="300dp"
+        android:listSelector="@android:color/transparent"
+        android:layout_height="@dimen/app_list_height"
         android:layout_width="match_parent"
         android:layout_gravity="center"
         android:layout_centerInParent="true"

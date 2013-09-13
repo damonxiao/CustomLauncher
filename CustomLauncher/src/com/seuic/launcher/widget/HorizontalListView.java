@@ -27,9 +27,7 @@
 
 package com.seuic.launcher.widget;
 
-import java.util.LinkedList;
-import java.util.Queue;
-
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Rect;
@@ -42,7 +40,14 @@ import android.widget.AdapterView;
 import android.widget.ListAdapter;
 import android.widget.Scroller;
 
-public class HorizontalListView extends AdapterView<ListAdapter> {
+import com.seuic.launcher.util.Logger;
+
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class HorizontalListView extends AdapterView<ListAdapter> implements Runnable{
+    
+    private static final String TAG = "HorizontalListView";
 
 	public boolean mAlwaysOverrideTouch = true;
 	protected ListAdapter mAdapter;
@@ -60,6 +65,13 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	private OnItemLongClickListener mOnItemLongClicked;
 	private boolean mDataChanged = false;
 	
+	private float mLastDownX = 0f;
+	
+	private int mDistance = 0;
+	
+	private int mStep = 10;
+	
+	private boolean mPositive = false;
 
 	public HorizontalListView(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -157,7 +169,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 	
 	
 
-	@Override
+	@SuppressLint("DrawAllocation")
+    @Override
 	protected synchronized void onLayout(boolean changed, int left, int top, int right, int bottom) {
 		super.onLayout(changed, left, top, right, bottom);
 
@@ -342,15 +355,17 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 		public boolean onSingleTapConfirmed(MotionEvent e) {
 			for(int i=0;i<getChildCount();i++){
 				View child = getChildAt(i);
-				if (isEventWithinView(e, child)) {
-					if(mOnItemClicked != null){
-						mOnItemClicked.onItemClick(HorizontalListView.this, child, mLeftViewIndex + 1 + i, mAdapter.getItemId( mLeftViewIndex + 1 + i ));
-					}
-					if(mOnItemSelected != null){
-						mOnItemSelected.onItemSelected(HorizontalListView.this, child, mLeftViewIndex + 1 + i, mAdapter.getItemId( mLeftViewIndex + 1 + i ));
-					}
-					break;
-				}
+                if (isEventWithinView(e, child)) {
+                    if (mOnItemClicked != null) {
+                        mOnItemClicked.onItemClick(HorizontalListView.this, child, mLeftViewIndex
+                                + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
+                    }
+                    if (mOnItemSelected != null) {
+                        mOnItemSelected.onItemSelected(HorizontalListView.this, child,
+                                mLeftViewIndex + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
+                    }
+                    break;
+                }
 				
 			}
 			return true;
@@ -361,12 +376,13 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
 			int childCount = getChildCount();
 			for (int i = 0; i < childCount; i++) {
 				View child = getChildAt(i);
-				if (isEventWithinView(e, child)) {
-					if (mOnItemLongClicked != null) {
-						mOnItemLongClicked.onItemLongClick(HorizontalListView.this, child, mLeftViewIndex + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
-					}
-					break;
-				}
+                if (isEventWithinView(e, child)) {
+                    if (mOnItemLongClicked != null) {
+                        mOnItemLongClicked.onItemLongClick(HorizontalListView.this, child,
+                                mLeftViewIndex + 1 + i, mAdapter.getItemId(mLeftViewIndex + 1 + i));
+                    }
+                    break;
+                }
 
 			}
 		}
@@ -383,6 +399,62 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
             return viewRect.contains((int) e.getRawX(), (int) e.getRawY());
         }
 	};
+
+
+	
+	
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Logger.d(TAG, "mLastDownX:"+mLastDownX+",event.getAction():"+event.getAction());
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                if (mLastDownX == 0 && mDistance == 0) {
+                    mLastDownX = event.getX();
+                    return true;
+                }
+            case MotionEvent.ACTION_CANCEL:
+                break;
+            case MotionEvent.ACTION_UP:
+                if (mDistance != 0) {
+                    mStep = 1;
+                    mPositive = (mDistance >= 0);
+                    post(this);
+                    return true;
+                }
+            case MotionEvent.ACTION_MOVE:
+                Logger.d(TAG, "mLastDownX:"+mLastDownX);
+                if (mLastDownX != 0f) {
+                    mDistance = (int) (mLastDownX - event.getY());
+                    Logger.d(TAG, "mDistance:"+mDistance);
+                    Logger.d(TAG, "getFirstVisiblePosition():"+getFirstVisiblePosition());
+                    if ((mDistance < 0 && getFirstVisiblePosition() == 0 && getChildAt(0).getLeft() == 0)
+                            ||
+                            (getLastVisiblePosition() == getCount() - 1 && mDistance > 0)) {
+                        mDistance /=2;
+                        scrollTo(mDistance,0);
+                        return true;
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    public void run() {
+        mDistance += mDistance >0 ? -mStep:mStep;
+        scrollTo(mDistance, 0);
+        if((mPositive && mDistance <=0) || (!mPositive && mDistance >=0)){
+            scrollTo(0, 0);
+            mDistance = 0;
+            mLastDownX = 0;
+            return;
+        }
+        mStep +=1;
+        postDelayed(this, 10);
+    }
 
 	
 

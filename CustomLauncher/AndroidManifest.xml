@@ -31,38 +31,31 @@
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR"/>
+    
+    <uses-sdk
+        android:minSdkVersion="11"
+        android:targetSdkVersion="17" />
 
     <application android:label="@string/home_title"
-          android:icon="@drawable/ic_launcher_home">
-
-        <activity android:name="com.seuic.launcher.Home"
-                android:theme="@style/Theme"
+          android:icon="@drawable/ic_launcher_home"
+          android:theme="@style/AppBaseTheme" >
+        <activity android:name="com.seuic.launcher.Launcher"
                 android:launchMode="singleInstance"
                 android:stateNotNeeded="true">
-            <!-- <intent-filter>
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME"/>
                 <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter> -->
-        </activity>
-        <activity android:name="com.seuic.launcher.Launcher"
-                android:theme="@style/Theme"
-                android:launchMode="singleInstance"
-                android:stateNotNeeded="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name="com.seuic.launcher.Wallpaper"
-                android:label="Wallpaper"
-                android:icon="@drawable/bg_android_icon">
+        
+        <receiver android:name="com.seuic.launcher.util.PackageStateReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.SET_WALLPAPER" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.PACKAGE_CHANGED" />
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
             </intent-filter>
-        </activity>
+        </receiver>
 
     </application>
 </manifest>

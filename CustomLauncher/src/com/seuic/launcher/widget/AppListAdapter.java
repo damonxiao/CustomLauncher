@@ -31,6 +31,11 @@ public class AppListAdapter extends BaseAdapter {
         mContext = context;
     }
 
+    public void refreshData(List<List<AppItem>> allApps){
+        mItems = allApps;
+        notifyDataSetChanged();
+    }
+    
     @Override
     public int getCount() {
         return mItems != null ? mItems.size() : 0;
@@ -48,9 +53,7 @@ public class AppListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-/*        if(convertView == null){
-        }
-*/        convertView = mInflater.inflate(R.layout.app_item_group, null);;
+        convertView = mInflater.inflate(R.layout.app_item_group, null);;
         List<AppItem> items = mItems.get(position);
         if(items != null && !items.isEmpty()){
             for(AppItem item: items){
