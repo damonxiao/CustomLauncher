@@ -9,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 
 import com.seuic.launcher.R;
+import com.seuic.launcher.data.AppItem;
 
 import java.util.List;
 

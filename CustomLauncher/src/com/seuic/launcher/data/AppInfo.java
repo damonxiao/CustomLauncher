@@ -14,19 +14,44 @@
  * limitations under the License.
  */
 
-package com.seuic.launcher.widget;
+package com.seuic.launcher.data;
 
 import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 
+import java.io.Serializable;
+
 /**
  * Represents a launchable application. An application is made of a name (or title), an intent
  * and an icon.
  */
-public class AppInfo {
+public class AppInfo implements Serializable{
+    
+    /** @Fields serialVersionUID: */
+      	
+    private static final long serialVersionUID = 1L;
+
     public enum AppSize{
-        large,small
+        large(1),small(0);
+        private int size;
+        AppSize(int size){
+            this.size = size;
+        }
+        
+        public int getSizeValue(){
+            return size;
+        }
+        
+        public static AppSize valueOf(int orginalValue){
+            if(orginalValue == 0){
+                return small;
+            }
+            if(orginalValue == 1){
+                return large;
+            }
+            return small;
+        }
     }
     /**
      * The application name.
@@ -58,6 +83,8 @@ public class AppInfo {
      */
     private int iconBgColor;
 
+    private String packageName;
+    
     /**
      * Creates the application intent based on a component name and various launch flags.
      *
@@ -141,6 +168,14 @@ public class AppInfo {
 
     public void setIconBgColor(int iconBgColor) {
         this.iconBgColor = iconBgColor;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
     }
 
     @Override

@@ -40,15 +40,11 @@ import android.widget.AdapterView;
 import android.widget.ListAdapter;
 import android.widget.Scroller;
 
-import com.seuic.launcher.util.Logger;
-
 import java.util.LinkedList;
 import java.util.Queue;
 
 public class HorizontalListView extends AdapterView<ListAdapter> implements Runnable{
     
-    private static final String TAG = "HorizontalListView";
-
 	public boolean mAlwaysOverrideTouch = true;
 	protected ListAdapter mAdapter;
 	private int mLeftViewIndex = -1;
@@ -330,19 +326,21 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
 
 		@Override
 		public boolean onDown(MotionEvent e) {
+		    onTouchEvent(e);
 			return HorizontalListView.this.onDown(e);
 		}
 
 		@Override
 		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
 				float velocityY) {
+		    onTouchEvent(e2);
 			return HorizontalListView.this.onFling(e1, e2, velocityX, velocityY);
 		}
 
 		@Override
 		public boolean onScroll(MotionEvent e1, MotionEvent e2,
 				float distanceX, float distanceY) {
-			
+		    onTouchEvent(e2);
 			synchronized(HorizontalListView.this){
 				mNextX += (int)distanceX;
 			}
@@ -399,13 +397,9 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
             return viewRect.contains((int) e.getRawX(), (int) e.getRawY());
         }
 	};
-
-
 	
-	
-    @Override
+	@Override
     public boolean onTouchEvent(MotionEvent event) {
-        Logger.d(TAG, "mLastDownX:"+mLastDownX+",event.getAction():"+event.getAction());
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 if (mLastDownX == 0 && mDistance == 0) {
@@ -422,11 +416,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
                     return true;
                 }
             case MotionEvent.ACTION_MOVE:
-                Logger.d(TAG, "mLastDownX:"+mLastDownX);
                 if (mLastDownX != 0f) {
                     mDistance = (int) (mLastDownX - event.getY());
-                    Logger.d(TAG, "mDistance:"+mDistance);
-                    Logger.d(TAG, "getFirstVisiblePosition():"+getFirstVisiblePosition());
                     if ((mDistance < 0 && getFirstVisiblePosition() == 0 && getChildAt(0).getLeft() == 0)
                             ||
                             (getLastVisiblePosition() == getCount() - 1 && mDistance > 0)) {

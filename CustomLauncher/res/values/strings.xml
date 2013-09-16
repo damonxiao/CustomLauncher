@@ -18,6 +18,7 @@
     <!-- Home -->
     <string name="home_title">Custom Launcher</string>
     <string name="show_all_apps">All</string>
+    <string name="icon_view_edit_txt">编辑</string>
 
     <!-- Home Menus -->
     <string name="menu_wallpaper">Wallpaper</string>
@@ -26,5 +27,17 @@
 
     <!-- Wallpaper -->
     <string name="wallpaper_instructions">Tap picture to set portrait wallpaper</string>
+    
+    <!-- common -->
+    <string name="save">保\t\t存</string>
+    <string name="cancel">取\t\t消</string>
+    
+    <!-- AppInfoEditor -->
+    <string name="modify_icon_info">修改瓷块信息</string>
+    <string name="icon_size">瓷块大小</string>
+    <string name="icon_color">瓷块颜色</string>
+    <string name="icon_name">瓷块名称</string>
+    <string name="icon_size_small">1 X 1</string>
+    <string name="icon_size_large">1 X 2</string>
 </resources>
 

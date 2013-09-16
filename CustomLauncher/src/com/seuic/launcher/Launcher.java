@@ -7,15 +7,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.database.ContentObserver;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.KeyEvent;
 
-import com.seuic.launcher.util.AppLoader;
+import com.seuic.launcher.data.AppInfo;
+import com.seuic.launcher.data.AppInfo.AppSize;
+import com.seuic.launcher.data.AppItem;
+import com.seuic.launcher.data.AppItem.ItemType;
+import com.seuic.launcher.util.AppHelper;
+import com.seuic.launcher.util.LauncherTables.TAppLiteInfo;
 import com.seuic.launcher.util.Logger;
-import com.seuic.launcher.widget.AppInfo;
-import com.seuic.launcher.widget.AppInfo.AppSize;
-import com.seuic.launcher.widget.AppItem;
-import com.seuic.launcher.widget.AppItem.ItemType;
 import com.seuic.launcher.widget.AppListAdapter;
 import com.seuic.launcher.widget.HorizontalListView;
 
@@ -35,6 +38,13 @@ public class Launcher extends Activity{
     
     private PackageStateReceiver mPackageStateReceiver;
     
+    private ContentObserver mAppLiteInfoObserver = new ContentObserver(new Handler()) {
+        public void onChange(boolean selfChange) {
+            Logger.d(TAG,"mAppLiteInfoObserver.onChange");
+            reloadApps();
+        }
+    };
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +55,7 @@ public class Launcher extends Activity{
         mAdapter = new AppListAdapter(mAllApps, this);
         mAllAppsList.setAdapter(mAdapter);
         regReceiver();
+        getContentResolver().registerContentObserver(TAppLiteInfo.CONTENT_URI, true, mAppLiteInfoObserver);
     }
     
     /**
@@ -140,7 +151,7 @@ public class Launcher extends Activity{
             final int count = apps.size();
             for (int i = 0; i < count; i++) {
                 ResolveInfo info = apps.get(i);
-                appInfos.add(AppLoader.loadAppInfo(info, this, manager));
+                appInfos.add(AppHelper.loadAppInfo(info, this, manager));
             }
         }
         return appInfos;
@@ -159,6 +170,7 @@ public class Launcher extends Activity{
         super.onDestroy();
         Logger.d(TAG, "onDestroy()");
         unregReceiver();
+        getContentResolver().unregisterContentObserver(mAppLiteInfoObserver);
     }
     
     private void regReceiver(){
@@ -180,6 +192,12 @@ public class Launcher extends Activity{
             unregisterReceiver(mPackageStateReceiver);
             mPackageStateReceiver = null;
         }
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+//        reloadApps();
     }
     
     private void reloadApps(){

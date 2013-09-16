@@ -38,15 +38,23 @@
 
     <application android:label="@string/home_title"
           android:icon="@drawable/ic_launcher_home"
-          android:theme="@style/AppBaseTheme" >
+          android:theme="@style/AppBaseTheme"
+          android:name="com.seuic.launcher.LauncherApp" 
+          android:debuggable="true">
         <activity android:name="com.seuic.launcher.Launcher"
                 android:launchMode="singleInstance"
                 android:stateNotNeeded="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.HOME"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="com.seuic.launcher.AppInfoEditor"
+            android:theme="@android:style/Theme.Dialog" 
+            android:label="@string/modify_icon_info">
         </activity>
         
         <receiver android:name="com.seuic.launcher.util.PackageStateReceiver">
@@ -56,6 +64,11 @@
                 <action android:name="android.intent.action.PACKAGE_REMOVED" />
             </intent-filter>
         </receiver>
+        
+        <provider
+            android:name="com.seuic.launcher.util.LauncherProvider"
+            android:authorities="com.seuic.launcher.provider"
+            android:exported="false" />
 
     </application>
 </manifest>

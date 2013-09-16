@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/editor_dialog_width"
+    android:layout_height="wrap_content"
+    android:scrollbars="none" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+        <TextView
+            style="@style/AppEditorContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/icon_view_margin_bottom_right"
+            android:text="@string/icon_color" />
+
+        <ImageView
+            android:id="@+id/icon_color"
+            android:layout_width="@dimen/icon_view_height_width"
+            android:layout_height="@dimen/icon_view_height_width"
+            android:layout_marginLeft="@dimen/icon_view_margin_bottom_right"
+            android:adjustViewBounds="true"
+            android:background="@color/blue"
+            android:scaleType="center"
+            android:src="@drawable/ic_launcher_home" />
+
+        <TextView
+            style="@style/AppEditorContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/icon_view_margin_bottom_right"
+            android:layout_marginTop="@dimen/icon_view_margin_bottom_right"
+            android:text="@string/icon_name" />
+
+        <EditText
+            android:id="@+id/icon_name"
+            style="@style/AppEditorDesc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/icon_view_margin_bottom_right"
+            android:layout_marginLeft="@dimen/icon_view_margin_bottom_right"
+            android:background="@color/black"
+            android:text="icon_name" />
+
+        <TextView
+            style="@style/AppEditorContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/icon_view_margin_bottom_right"
+            android:layout_marginTop="@dimen/icon_view_margin_bottom_right"
+            android:text="@string/icon_size" />
+
+        <RadioGroup android:id="@+id/icon_size_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/icon_size_small"
+                style="@style/AppEditorDesc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/icon_view_margin_bottom_right"
+                android:layout_marginLeft="@dimen/icon_view_margin_bottom_right"
+                android:text="@string/icon_size_small" />
+            <RadioButton
+                android:id="@+id/icon_size_large"
+                style="@style/AppEditorDesc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/icon_view_margin_bottom_right"
+                android:layout_marginLeft="@dimen/icon_view_margin_bottom_right"
+                android:text="@string/icon_size_large" />
+
+        </RadioGroup>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/editor_dialog_btn_layout_height"
+            android:layout_marginTop="@dimen/icon_view_margin_bottom_right"
+            android:orientation="horizontal"
+            android:background="@color/blue">
+
+            <TextView
+                android:id="@+id/cancel_btn"
+                style="@style/AppEditorContent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|left"
+                android:layout_marginLeft="@dimen/editor_dialog_btn_margin_left_right"
+                android:background="@drawable/edit_btn_selector"
+                android:paddingLeft="@dimen/icon_view_margin_bottom_right"
+                android:paddingRight="@dimen/icon_view_margin_bottom_right"
+                android:clickable="true"
+                android:text="@string/cancel" />
+
+            <TextView
+                android:id="@+id/save_btn"
+                style="@style/AppEditorContent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|right"
+                android:layout_marginRight="@dimen/editor_dialog_btn_margin_left_right"
+                android:background="@drawable/edit_btn_selector"
+                android:paddingLeft="@dimen/icon_view_margin_bottom_right"
+                android:paddingRight="@dimen/icon_view_margin_bottom_right"
+                android:clickable="true"
+                android:text="@string/save" />
+        </FrameLayout>
+    </LinearLayout>
+
+</ScrollView>

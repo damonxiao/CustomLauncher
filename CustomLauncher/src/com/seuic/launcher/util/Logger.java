@@ -10,6 +10,9 @@ import android.util.Log;
  * @version V1.3.1
  */
 public class Logger {
+    
+    private static final String TAG = "CustomLauncher";
+    
     /**
      * Priority constant for the prbooleanln method; use Log.v.
      */
@@ -38,27 +41,27 @@ public class Logger {
 
     public static void v(String tag, String msg) {
         if (ENABLE_VERBOSE)
-            Log.v(tag, msg);
+            Log.v(TAG, "["+tag+"]"+msg);
     }
 
     public static void d(String tag, String msg) {
         if (ENABLE_DEBUG)
-            Log.d(tag, msg);
+            Log.d(TAG, "["+tag+"]"+msg);
     }
 
     public static void e(String tag, String msg) {
         if (ENABLE_ERROR)
-            Log.e(tag, msg);
+            Log.e(TAG, "["+tag+"]"+msg);
     }
 
     public static void w(String tag, String msg) {
         if (ENABLE_WARN)
-            Log.w(tag, msg);
+            Log.w(TAG, "["+tag+"]"+msg);
     }
 
     public static void i(String tag, String msg) {
         if (ENABLE_INFO)
-            Log.i(tag, msg);
+            Log.i(TAG, "["+tag+"]"+msg);
     }
 
 }

@@ -1,32 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/icon_view_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginBottom="@dimen/icon_view_margin_bottom_right"
+    android:layout_marginRight="@dimen/icon_view_margin_bottom_right"
+    android:background="@color/launcher_icon_item_blue"
     android:clickable="false"
     android:gravity="center"
-    android:orientation="vertical" 
-    android:id="@+id/icon_view_root"
-    android:background="@color/launcher_icon_item_blue"
-    android:layout_marginBottom="@dimen/icon_view_margin_bottom_right"
-    android:layout_marginRight="@dimen/icon_view_margin_bottom_right">
+    android:orientation="vertical" >
 
     <ImageView
         android:id="@+id/icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:adjustViewBounds="true"/>
+        android:adjustViewBounds="true" />
 
     <TextView
         android:id="@+id/label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/icon_view_margin_bottom_right"
-        android:text="TextView"
         android:layout_gravity="left|bottom"
-        android:textColor="@color/white"
-        android:textSize="@dimen/icon_label_size" 
+        android:layout_margin="@dimen/icon_view_margin_bottom_right"
+        android:ellipsize="end"
         android:singleLine="true"
-        android:ellipsize="end"/>
+        android:text="@string/icon_view_edit_txt"
+        android:textColor="@color/white"
+        android:textSize="@dimen/icon_label_size" />
 
+    <TextView
+        android:id="@+id/edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:background="@drawable/edit_btn_selector"
+        android:clickable="true"
+        android:drawableLeft="@drawable/icon_view_editor"
+        android:gravity="center"
+        android:paddingLeft="@dimen/icon_view_margin_bottom_right"
+        android:paddingRight="@dimen/icon_view_margin_bottom_right"
+        android:text="@string/icon_view_edit_txt"
+        android:textColor="@color/white"
+        android:visibility="invisible" />
 </FrameLayout>

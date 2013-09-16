@@ -1,4 +1,5 @@
-package com.seuic.launcher.widget;
+package com.seuic.launcher.data;
+
 
 
 public class AppItem {
