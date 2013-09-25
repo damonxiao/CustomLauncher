@@ -7,8 +7,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.Gallery;
 
-import com.seuic.launcher.util.Logger;
-
 public class AlbumGallery extends Gallery{
 
     private static final String TAG = "AlbumGallery";

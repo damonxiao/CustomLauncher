@@ -40,7 +40,8 @@
           android:icon="@drawable/ic_launcher_home"
           android:theme="@style/AppBaseTheme"
           android:name="com.seuic.launcher.LauncherApp" 
-          android:debuggable="true">
+          android:debuggable="@bool/debug_enable"
+          android:allowBackup="false">
         <activity android:name="com.seuic.launcher.Launcher"
                 android:launchMode="singleInstance"
                 android:stateNotNeeded="true">
