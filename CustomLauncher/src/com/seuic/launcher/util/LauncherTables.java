@@ -18,6 +18,7 @@ public class LauncherTables {
         public static final String ICON_IMAGE_PATH = "iconImagePath";
         public static final String ICON_SIZE = "iconSize";
         public static final String ICON_COLOR = "iconColor";
+        public static final String SORT_POSITION = "sortPosition";
         
         public static final Uri CONTENT_URI = LauncherProvider.getUriFor(LauncherApp.getAppContext(), TABLE_NAME);
         
@@ -27,6 +28,7 @@ public class LauncherTables {
                 + LABEL + " text,"
                 + ICON_IMAGE_PATH + " text,"
                 + ICON_SIZE + " integer,"
-                + ICON_COLOR + " integer);";
+                + ICON_COLOR + " integer,"
+                + SORT_POSITION + " integer);";
     }
 }

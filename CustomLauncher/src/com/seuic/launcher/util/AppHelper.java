@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -63,7 +64,7 @@ public class AppHelper {
             return null;
         }
         if (PACKAGE_ICON_MAPPING.containsKey(packageName)) {
-            return loadIconFromAssets(PACKAGE_ICON_MAPPING.get(packageName).getIconPath(), context);
+            return loadDrawableFromAssets(PACKAGE_ICON_MAPPING.get(packageName).getIconPath(), context);
         }
         return null;
     }
@@ -200,7 +201,7 @@ public class AppHelper {
         return application;
     }
     
-    private static Drawable loadIconFromAssets(String iconPath,Context context){
+    public static Drawable loadDrawableFromAssets(String iconPath,Context context){
         if(TextUtils.isEmpty(iconPath) || context == null){
             return null;
         }
@@ -231,10 +232,32 @@ public class AppHelper {
         if (DEFAULT_DEFINED_ICONS.isEmpty()) {
             return false;
         }
+        PackageManager manager = LauncherApp.getAppContext().getPackageManager();
+        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+        final List<ResolveInfo> apps = manager.queryIntentActivities(mainIntent, 0);
+        Collections.sort(apps, new ResolveInfo.DisplayNameComparator(manager));
+
+        if (apps != null) {
+            final int count = apps.size();
+            for (int i = 0; i < count; i++) {
+                ResolveInfo info = apps.get(i);
+                if (!DEFAULT_DEFINED_ICONS.containsKey(info.activityInfo.packageName)) {
+                    DEFAULT_DEFINED_ICONS.put(info.activityInfo.packageName, new AppLiteInfo(
+                            info.activityInfo.packageName, null,
+                            getColor(R.color.launcher_icon_item_blue), AppSize.small));
+                }
+            }
+        }
         Collection<AppLiteInfo> collection = DEFAULT_DEFINED_ICONS.values();
         List<ContentValues> values = new ArrayList<ContentValues>();
+        int temp = 0;
         for (Iterator<AppLiteInfo> iter = collection.iterator(); iter.hasNext();) {
-            values.add(iter.next().toContentValues());
+            AppLiteInfo liteInfo = iter.next();
+            liteInfo.setSortPositon(temp);
+            values.add(liteInfo.toContentValues());
+            temp++;
         }
         ContentValues valuesArray[] = new ContentValues[values.size()];
         return LauncherApp.getAppContext().getContentResolver()
@@ -246,7 +269,7 @@ public class AppHelper {
                 TAG,
                 "loadDefinedApp()");
         Cursor cursor = LauncherApp.getAppContext().getContentResolver()
-                .query(LauncherTables.TAppLiteInfo.CONTENT_URI, null, null, null, null);
+                .query(LauncherTables.TAppLiteInfo.CONTENT_URI, null, null, null, LauncherTables.TAppLiteInfo.SORT_POSITION+" DESC");
         try {
             if (cursor != null && cursor.getCount() > 0) {
                 PACKAGE_ICON_MAPPING.clear();

@@ -41,6 +41,23 @@ public class Launcher extends Activity{
     
     private PackageStateReceiver mPackageStateReceiver;
     
+    private static final int MSG_SCREEN_OUT_TIME = 1;
+    private static final long SCREEN_OUT_TIME_DURATION = 1000*60;
+    
+    private Handler mHandler = new Handler(){
+        public void handleMessage(android.os.Message msg) {
+            switch (msg.what) {
+                case MSG_SCREEN_OUT_TIME:
+                    Intent intent = new Intent(Launcher.this, Albums.class);
+                    startActivity(intent);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    };
+    
     private ContentObserver mAppLiteInfoObserver = new ContentObserver(new Handler()) {
         public void onChange(boolean selfChange) {
             Logger.d(TAG,"mAppLiteInfoObserver.onChange");
@@ -208,7 +225,14 @@ public class Launcher extends Activity{
     @Override
     protected void onResume() {
         super.onResume();
-//        reloadApps();
+        mHandler.removeMessages(MSG_SCREEN_OUT_TIME);
+        mHandler.sendEmptyMessageDelayed(MSG_SCREEN_OUT_TIME, SCREEN_OUT_TIME_DURATION);
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mHandler.removeMessages(MSG_SCREEN_OUT_TIME);
     }
     
     private void reloadApps(){

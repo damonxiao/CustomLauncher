@@ -13,6 +13,7 @@ public class AppLiteInfo{
     private int color;
     private AppSize size = AppSize.small;
     private String label;
+    private int sortPositon;
     public AppLiteInfo(String pkgName, String iconPath, int color, AppSize size) {
         super();
         this.pkgName = pkgName;
@@ -33,6 +34,7 @@ public class AppLiteInfo{
             color = cursor.getInt(cursor.getColumnIndex(TAppLiteInfo.ICON_COLOR));
             size = AppSize.valueOf(cursor.getInt(cursor.getColumnIndex(TAppLiteInfo.ICON_SIZE)));
             label = cursor.getString(cursor.getColumnIndex(TAppLiteInfo.LABEL));
+            sortPositon = cursor.getInt(cursor.getColumnIndex(TAppLiteInfo.SORT_POSITION));
         }
     }
 
@@ -76,6 +78,14 @@ public class AppLiteInfo{
         this.label = label;
     }
 
+    public int getSortPositon() {
+        return sortPositon;
+    }
+
+    public void setSortPositon(int sortPositon) {
+        this.sortPositon = sortPositon;
+    }
+
     public ContentValues toContentValues(){
         ContentValues values = new ContentValues();
         values.put(TAppLiteInfo.PACKAGE_NAME, pkgName);
@@ -83,13 +93,15 @@ public class AppLiteInfo{
         values.put(TAppLiteInfo.ICON_COLOR, color);
         values.put(TAppLiteInfo.ICON_SIZE, size.getSizeValue());
         values.put(TAppLiteInfo.LABEL, label);
+        values.put(TAppLiteInfo.SORT_POSITION, sortPositon);
         return values;
     }
 
     @Override
     public String toString() {
         return "AppLiteInfo [id=" + id + ", pkgName=" + pkgName + ", iconPath=" + iconPath
-                + ", color=" + color + ", size=" + size + "]";
+                + ", color=" + color + ", size=" + size + ", label=" + label + ", sortPositon="
+                + sortPositon + "]";
     }
-    
+
 }
