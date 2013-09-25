@@ -11,6 +11,9 @@ import android.database.ContentObserver;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.KeyEvent;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 
 import com.seuic.launcher.data.AppInfo;
 import com.seuic.launcher.data.AppInfo.AppSize;
@@ -51,6 +54,14 @@ public class Launcher extends Activity{
         Logger.d(TAG, "onCreate()");
         setContentView(R.layout.app_list);
         mAllAppsList = (HorizontalListView) findViewById(R.id.all_apps_list);
+        mAllAppsList.setOnItemLongClickListener(new OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Logger.d(TAG, "onItemLongClick()[position="+position+"]");
+                return false;
+            }
+        });
         loadApplications(false);
         mAdapter = new AppListAdapter(mAllApps, this);
         mAllAppsList.setAdapter(mAdapter);

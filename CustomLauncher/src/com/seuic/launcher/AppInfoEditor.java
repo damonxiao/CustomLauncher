@@ -64,6 +64,7 @@ public class AppInfoEditor extends Activity implements OnClickListener{
         mIconColor.setImageDrawable(mAppInfo.getIcon());
         mIconColor.setBackgroundColor(mAppInfo.getIconBgColor());
         mLabelEdit.setText(mAppInfo.getTitle());
+        mLabelEdit.setSelection(mLabelEdit.length());
         mLabelEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {

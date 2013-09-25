@@ -21,16 +21,48 @@ import android.widget.TextView;
 import com.seuic.launcher.AppInfoEditor;
 import com.seuic.launcher.R;
 import com.seuic.launcher.data.AppInfo;
+import com.seuic.launcher.data.AppItem;
+import com.seuic.launcher.data.AppItem.ItemType;
 import com.seuic.launcher.util.Const;
 import com.seuic.launcher.util.Logger;
 
 public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongClickListener{
 
+    public interface AppItemSelectedListener{
+        void onItemInfoViewSelected(AppInfoView infoView);
+    }
+    
+    public static class DragItemInto{
+        int pos0;//means adapter's position
+        int pos1;//means in the item's list position
+        AppItem.ItemType itemType = ItemType.LEFT;//to mark the item is left or right
+        public DragItemInto(int pos0, int pos1, ItemType itemType) {
+            super();
+            this.pos0 = pos0;
+            this.pos1 = pos1;
+            this.itemType = itemType;
+        }
+        
+        @Override
+        public boolean equals(Object o) {
+            if (o == null) {
+                return false;
+            }
+            DragItemInto item = (DragItemInto) o;
+            return item.pos0 == pos0 && item.pos1 == pos1 && item.itemType == itemType;
+        }
+    }
+    
+    
     private AppInfo mAppInfo;
 
     private View mViewRoot;
     
     private View mEditView;
+    
+    private AppItemSelectedListener mAppItemSelectedListener;
+    
+    private DragItemInto mDragItemInfo;
     
     public AppInfoView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -117,6 +149,9 @@ public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongC
 
     @Override
     public boolean onLongClick(final View v) {
+        if(mAppItemSelectedListener != null){
+            mAppItemSelectedListener.onItemInfoViewSelected(this);
+        }
         findViewById(R.id.edit).setVisibility(View.VISIBLE);
         ScaleAnimation scaleIn = (ScaleAnimation) AnimationUtils.loadAnimation(getContext(), R.anim.scale_in);
         scaleIn.setFillAfter(true);
@@ -163,6 +198,35 @@ public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongC
             return true;
         }
         return false;
+    }
+    
+    public void setOnItemSelectedListener(AppItemSelectedListener listener){
+        mAppItemSelectedListener = listener;
+    }
+    
+    public boolean containsPonit(int x,int y){
+        int location[] = new int[2];
+        getLocationOnScreen(location);
+        Logger.d("AppInfoView", "containsPonit()x="+x+",y="+y);
+        Logger.d("AppInfoView", "containsPonit()getLeft="+getLeft()+",getRight="+getRight()+",getTop="+getTop()+",getBottom="+getBottom());
+        if(x > location[0] && x < (getRight()+location[0]) && y > location[1] && y < (location[1]+getBottom())){
+            Logger.d("AppInfoView", "containsPonit() contains");
+            return true;
+        }
+        Logger.d("AppInfoView", "containsPonit() not contains");
+        return false;
+    }
+
+    public DragItemInto getDragItemInfo() {
+        return mDragItemInfo;
+    }
+
+    public void setDragItemInfo(DragItemInto dragItemInfo) {
+        this.mDragItemInfo = dragItemInfo;
+    }
+    
+    public AppInfo getAppInfo(){
+        return mAppInfo;
     }
     
     /*private void showEditPopup(View v) {

@@ -29,6 +29,33 @@ public class AppItem {
     public void setRightItem(AppInfo rightItem) {
         this.rightItem = rightItem;
     }
+    
+    public void setItemByType(AppInfo item,ItemType itemType){
+        switch (itemType) {
+            case LEFT:
+            case LEFT_RIGHT:
+            case ONE_LINE:
+            default:
+                leftItem = item;
+                break;
+            case RIGHT:
+                rightItem = item;
+                break;
+        }
+    }
+    
+    public AppInfo getItemByType(ItemType itemType){
+        switch (itemType) {
+            case LEFT:
+            case LEFT_RIGHT:
+            case ONE_LINE:
+            default:
+                return leftItem;
+            case RIGHT:
+                return rightItem;
+        }
+    }
+    
     @Override
     public String toString() {
         return "AppItem [itemType=" + itemType + ", leftItem=" + leftItem + ", rightItem="
