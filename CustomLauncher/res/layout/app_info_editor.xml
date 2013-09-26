@@ -37,13 +37,14 @@
         <EditText
             android:id="@+id/icon_name"
             style="@style/AppEditorDesc"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/icon_view_margin_bottom_right"
             android:layout_marginLeft="@dimen/icon_view_margin_bottom_right"
-            android:background="@color/black"
-            android:gravity="right"
-            android:text="icon_name" />
+            android:background="@color/transparent"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:gravity="left"/>
 
         <TextView
             style="@style/AppEditorContent"
@@ -52,13 +53,13 @@
             android:layout_marginLeft="@dimen/icon_view_margin_bottom_right"
             android:layout_marginTop="@dimen/icon_view_margin_bottom_right"
             android:text="@string/icon_size" 
-             android:visibility="invisible"/>
+             android:visibility="visible"/>
 
         <RadioGroup android:id="@+id/icon_size_group"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:visibility="gone">
+            android:visibility="visible">
 
             <RadioButton
                 android:id="@+id/icon_size_small"

@@ -19,6 +19,7 @@ public class LauncherTables {
         public static final String ICON_SIZE = "iconSize";
         public static final String ICON_COLOR = "iconColor";
         public static final String SORT_POSITION = "sortPosition";
+        public static final String ITEM_POSITION_TYPE = "itemPositionType";//to save the item is left,right or all line.
         
         public static final Uri CONTENT_URI = LauncherProvider.getUriFor(LauncherApp.getAppContext(), TABLE_NAME);
         
@@ -29,6 +30,7 @@ public class LauncherTables {
                 + ICON_IMAGE_PATH + " text,"
                 + ICON_SIZE + " integer,"
                 + ICON_COLOR + " integer,"
-                + SORT_POSITION + " integer);";
+                + SORT_POSITION + " integer,"
+                + ITEM_POSITION_TYPE + " integer);";
     }
 }

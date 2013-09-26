@@ -3,13 +3,17 @@ package com.seuic.launcher.data;
 
 
 public class AppItem {
-    public enum ItemType{
-        LEFT_RIGHT,LEFT,RIGHT,ONE_LINE
+    public enum ItemType {
+        LEFT_RIGHT,LEFT, RIGHT, ONE_LINE
     }
     
-    private ItemType itemType = ItemType.LEFT;
-    private AppInfo leftItem;
-    private AppInfo rightItem;
+    /*
+     * to mark the current APP item is left only,rightonly,both left and right
+     * or match line.
+     */
+    private ItemType itemType = ItemType.LEFT_RIGHT;
+    private AppLiteInfo leftItem;
+    private AppLiteInfo rightItem;
     
     public ItemType getItemType() {
         return itemType;
@@ -17,20 +21,20 @@ public class AppItem {
     public void setItemType(ItemType itemType) {
         this.itemType = itemType;
     }
-    public AppInfo getLeftItem() {
+    public AppLiteInfo getLeftItem() {
         return leftItem;
     }
-    public void setLeftItem(AppInfo leftItem) {
+    public void setLeftItem(AppLiteInfo leftItem) {
         this.leftItem = leftItem;
     }
-    public AppInfo getRightItem() {
+    public AppLiteInfo getRightItem() {
         return rightItem;
     }
-    public void setRightItem(AppInfo rightItem) {
+    public void setRightItem(AppLiteInfo rightItem) {
         this.rightItem = rightItem;
     }
     
-    public void setItemByType(AppInfo item,ItemType itemType){
+    public void setItemByType(AppLiteInfo item,ItemType itemType){
         switch (itemType) {
             case LEFT:
             case LEFT_RIGHT:
@@ -44,7 +48,7 @@ public class AppItem {
         }
     }
     
-    public AppInfo getItemByType(ItemType itemType){
+    public AppLiteInfo getItemByType(ItemType itemType){
         switch (itemType) {
             case LEFT:
             case LEFT_RIGHT:

@@ -13,8 +13,8 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
-import com.seuic.launcher.data.AppInfo;
-import com.seuic.launcher.data.AppInfo.AppSize;
+import com.seuic.launcher.data.AppLiteInfo;
+import com.seuic.launcher.data.AppLiteInfo.AppSize;
 import com.seuic.launcher.util.AppHelper;
 import com.seuic.launcher.util.Const;
 import com.seuic.launcher.util.Logger;
@@ -22,7 +22,7 @@ import com.seuic.launcher.widget.ColorPickerDialog;
 
 public class AppInfoEditor extends Activity implements OnClickListener{
 
-    private AppInfo mAppInfo;
+    private AppLiteInfo mAppInfo;
 
     private ImageView mIconColor;
 
@@ -44,10 +44,10 @@ public class AppInfoEditor extends Activity implements OnClickListener{
                 RadioButton rb = (RadioButton) findViewById(checkedId);
                 String txt = rb.getText().toString();
                 if(txt.equals(getString(R.string.icon_size_small))){
-                    mAppInfo.setAppSize(AppSize.small);
+                    mAppInfo.setSize(AppSize.small);
                 }
                 else if(txt.equals(getString(R.string.icon_size_large))){
-                    mAppInfo.setAppSize(AppSize.large);
+                    mAppInfo.setSize(AppSize.large);
                 }
             }
         });
@@ -56,20 +56,20 @@ public class AppInfoEditor extends Activity implements OnClickListener{
             finish();
             return;
         }
-        mAppInfo = AppHelper.loadAppInfo(packageName, this, getPackageManager());
+        mAppInfo = AppHelper.loadAppInfo(packageName);
         if(mAppInfo == null){
             finish();
             return;
         }
         mIconColor.setImageDrawable(mAppInfo.getIcon());
-        mIconColor.setBackgroundColor(mAppInfo.getIconBgColor());
-        mLabelEdit.setText(mAppInfo.getTitle());
+        mIconColor.setBackgroundColor(mAppInfo.getColor());
+        mLabelEdit.setText(mAppInfo.getLabel());
         mLabelEdit.setSelection(mLabelEdit.length());
         mLabelEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if(s != null && s.length() > 0){
-                    mAppInfo.setTitle(s);
+                    mAppInfo.setLabel(s.toString());
                 }
             }
             
@@ -83,7 +83,7 @@ public class AppInfoEditor extends Activity implements OnClickListener{
                 
             }
         });
-        AppSize size = mAppInfo.getAppSize();
+        AppSize size = mAppInfo.getSize();
         if(size == AppSize.small){
             ((RadioButton)(mIconSizeGroup.getChildAt(0))).setChecked(true);
         }else {
@@ -113,7 +113,7 @@ public class AppInfoEditor extends Activity implements OnClickListener{
                             public void colorChanged(int color) {
                                 Logger.d("AppInfoEditor", "colorChanged()[color=" + color + "]");
                                 mIconColor.setBackgroundColor(color);
-                                mAppInfo.setIconBgColor(color);
+                                mAppInfo.setColor(color);
                             }
                         });
                 colorPicker.show();

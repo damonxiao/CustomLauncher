@@ -1,7 +1,6 @@
 
 package com.seuic.launcher.widget;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -132,7 +131,6 @@ public class ColorPickerDialog extends Dialog {
             rectBottom = rectTop + 50;
         }
 
-        @SuppressLint("DrawAllocation")
         @Override
         protected void onDraw(Canvas canvas) {
             // 移动中心

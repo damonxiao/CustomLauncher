@@ -5,20 +5,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.database.ContentObserver;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 
-import com.seuic.launcher.data.AppInfo;
-import com.seuic.launcher.data.AppInfo.AppSize;
 import com.seuic.launcher.data.AppItem;
 import com.seuic.launcher.data.AppItem.ItemType;
+import com.seuic.launcher.data.AppLiteInfo;
+import com.seuic.launcher.data.AppLiteInfo.AppSize;
 import com.seuic.launcher.util.AppHelper;
 import com.seuic.launcher.util.LauncherTables.TAppLiteInfo;
 import com.seuic.launcher.util.Logger;
@@ -26,7 +25,6 @@ import com.seuic.launcher.widget.AppListAdapter;
 import com.seuic.launcher.widget.HorizontalListView;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class Launcher extends Activity{
@@ -89,84 +87,87 @@ public class Launcher extends Activity{
     /**
      * Loads the list of installed applications in mApplicati(count -i) <=ons.
      */
-    private void loadApplications(boolean isLaunching) {
-        Logger.d(TAG, "loadApplications()[isLaunching=" + isLaunching + "]");
-        if (isLaunching) {
+    private void loadApplications(boolean forceReload) {
+        Logger.d(TAG, "loadApplications()[forceReload=" + forceReload + "]");
+
+        List<AppLiteInfo> appInfos = AppHelper.getAppLiteInfos(forceReload);
+        if (appInfos == null || appInfos.isEmpty()) {
             return;
         }
-
-            List<AppInfo> appInfos = getAllApps();
-            if(appInfos == null || appInfos.isEmpty()){
-                return;
+        final int count = appInfos.size();
+        if (mAllApps == null) {
+            mAllApps = new ArrayList<List<AppItem>>();
+        }
+        mAllApps.clear();
+        List<AppItem> items = new ArrayList<AppItem>();
+        AppItem item = new AppItem();
+        AppLiteInfo previousPosApp = null;
+        for (int i = 0; i < count; i++) {
+            AppLiteInfo application = appInfos.get(i);
+            AppItem previousItem = !items.isEmpty() ? items.get(items.size() - 1) : null;
+            if(previousItem == null && !mAllApps.isEmpty()){
+                List<AppItem> tmpItems = mAllApps.get(mAllApps.size()-1);
+                if(tmpItems != null && !tmpItems.isEmpty()){
+                    previousItem = tmpItems.get(tmpItems.size() - 1);
+                }
             }
-            final int count = appInfos.size();
-            if(mAllApps == null){
-                mAllApps = new ArrayList<List<AppItem>>();
-            }
-            mAllApps.clear();
-            List<AppItem> items = new ArrayList<AppItem>();
-            AppItem item = new AppItem();
-            AppInfo previousPosApp = null;
-            for (int i = 0; i < count; i++) {
-                AppInfo application = appInfos.get(i);
-                AppItem previousItem = !items.isEmpty()?items.get(items.size()-1):null;
-            if (previousPosApp != null && previousPosApp.getAppSize() == AppSize.small) {
-                if (application.getAppSize() == AppSize.small
+            if (previousPosApp != null && previousPosApp.getSize() == AppSize.small) {
+                if (application.getSize() == AppSize.small
                         && previousItem != null && previousItem.getRightItem() == null)
                 {
-                    items.get(items.size() - 1).setRightItem(application);
-                } else if (application.getAppSize() == AppSize.small
+                    previousItem.setRightItem(application);
+                } else if (application.getSize() == AppSize.small
                         && ((previousItem != null && previousItem.getRightItem() != null)
                         || previousItem == null)) {
                     item.setLeftItem(application);
                     item.setItemType(ItemType.LEFT_RIGHT);
                     items.add(item);
                     item = new AppItem();
-                } else if (application.getAppSize() == AppSize.large) {
+                } else if (application.getSize() == AppSize.large) {
                     item.setLeftItem(application);
                     item.setItemType(ItemType.ONE_LINE);
                     items.add(item);
                     item = new AppItem();
                 }
-            }else if(previousPosApp != null && previousPosApp.getAppSize() == AppSize.large){
-                    if(application.getAppSize() == AppSize.small){
-                        item.setLeftItem(application);
-                        item.setItemType(ItemType.LEFT_RIGHT);
-                        items.add(item);
-                        item = new AppItem();
-                    }
-                    else if(application.getAppSize() == AppSize.large){
-                        item.setLeftItem(application);
-                        item.setItemType(ItemType.ONE_LINE);
-                        items.add(item);
-                        item = new AppItem();
-                    }
-                }else if(previousPosApp == null){
-                    if(application.getAppSize() == AppSize.small){
-                        item.setLeftItem(application);
-                        item.setItemType(ItemType.LEFT_RIGHT);
-                        items.add(item);
-                        item = new AppItem();
-                    }
-                    else if(application.getAppSize() == AppSize.large){
-                        item.setLeftItem(application);
-                        item.setItemType(ItemType.ONE_LINE);
-                        items.add(item);
-                        item = new AppItem();
-                    }
+            } else if (previousPosApp != null && previousPosApp.getSize() == AppSize.large) {
+                if (application.getSize() == AppSize.small) {
+                    item.setLeftItem(application);
+                    item.setItemType(ItemType.LEFT_RIGHT);
+                    items.add(item);
+                    item = new AppItem();
                 }
-                if(items.size() == 3 || (count -i ==1)){
-                    mAllApps.add(items);
-                    items = new ArrayList<AppItem>();
+                else if (application.getSize() == AppSize.large) {
+                    item.setLeftItem(application);
+                    item.setItemType(ItemType.ONE_LINE);
+                    items.add(item);
+                    item = new AppItem();
                 }
-                previousPosApp = application;
+            } else if (previousPosApp == null) {
+                if (application.getSize() == AppSize.small) {
+                    item.setLeftItem(application);
+                    item.setItemType(ItemType.LEFT_RIGHT);
+                    items.add(item);
+                    item = new AppItem();
+                }
+                else if (application.getSize() == AppSize.large) {
+                    item.setLeftItem(application);
+                    item.setItemType(ItemType.ONE_LINE);
+                    items.add(item);
+                    item = new AppItem();
+                }
             }
-        Logger.d(TAG, "loadApplications()[mAllApps="+mAllApps+"]");
-        
+            if (items.size() == 3 || (count - i == 1)) {
+                mAllApps.add(items);
+                items = new ArrayList<AppItem>();
+            }
+            previousPosApp = application;
+        }
+        Logger.d(TAG, "loadApplications()[mAllApps=" + mAllApps + "]");
+
     }
     
-    private List<AppInfo> getAllApps() {
-        List<AppInfo> appInfos = new ArrayList<AppInfo>();
+    /*private List<AppLiteInfo> getAllApps() {
+        List<AppLiteInfo> appInfos = new ArrayList<AppLiteInfo>();
         PackageManager manager = getPackageManager();
 
         Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
@@ -183,7 +184,7 @@ public class Launcher extends Activity{
             }
         }
         return appInfos;
-    }
+    }*/
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -191,6 +192,13 @@ public class Launcher extends Activity{
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+    
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mHandler.removeMessages(MSG_SCREEN_OUT_TIME);
+        mHandler.sendEmptyMessageDelayed(MSG_SCREEN_OUT_TIME, SCREEN_OUT_TIME_DURATION);
+        return super.onTouchEvent(event);
     }
     
     @Override
@@ -236,7 +244,7 @@ public class Launcher extends Activity{
     }
     
     private void reloadApps(){
-        loadApplications(false);
+        loadApplications(true);
         mAdapter.refreshData(mAllApps);
     }
     

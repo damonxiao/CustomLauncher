@@ -9,14 +9,12 @@ import android.widget.Gallery;
 
 public class AlbumGallery extends Gallery{
 
-    private static final String TAG = "AlbumGallery";
-    
     private boolean autoPlay;
     
     private static final int MSG_PLAY = 1;
     private static final int MSG_PAUSE = 2;
     private static final int MSG_NEXT = 3;
-    private static final long DURATION = 3000;
+    private static final long DURATION = 5000;
     
     public AlbumGallery(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);

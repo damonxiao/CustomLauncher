@@ -1,6 +1,5 @@
 package com.seuic.launcher.util;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -27,7 +26,6 @@ public class SharedPrefsUtil {
         return getSharedPreferences().getBoolean(key, defValue);
     }
     
-    @SuppressLint("WorldWriteableFiles")
     private static SharedPreferences getSharedPreferences() {
         return LauncherApp.getAppContext().getSharedPreferences(SHARED_PREF_NAME,
                 Context.MODE_WORLD_WRITEABLE);

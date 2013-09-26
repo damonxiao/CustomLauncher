@@ -1,13 +1,9 @@
 package com.seuic.launcher.util;
 
-import android.annotation.SuppressLint;
-import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
@@ -15,15 +11,14 @@ import android.text.TextUtils;
 
 import com.seuic.launcher.LauncherApp;
 import com.seuic.launcher.R;
-import com.seuic.launcher.data.AppInfo;
-import com.seuic.launcher.data.AppInfo.AppSize;
+import com.seuic.launcher.data.AppItem.ItemType;
 import com.seuic.launcher.data.AppLiteInfo;
+import com.seuic.launcher.data.AppLiteInfo.AppSize;
 import com.seuic.launcher.util.LauncherTables.TAppLiteInfo;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,37 +29,38 @@ public class AppHelper {
     
     private static final HashMap<String, AppLiteInfo> DEFAULT_DEFINED_ICONS = new HashMap<String, AppLiteInfo>();
     
-    private static final HashMap<String, AppLiteInfo> PACKAGE_ICON_MAPPING = new HashMap<String, AppLiteInfo>();
+    private static final HashMap<String, AppLiteInfo> appMapping = new HashMap<String, AppLiteInfo>();
+    private static final List<AppLiteInfo> appList = new ArrayList<AppLiteInfo>();
     
     static {
         DEFAULT_DEFINED_ICONS.put("com.android.calculator2", new AppLiteInfo(
                 "com.android.calculator2", "icons/calculator.png", getColor(R.color.launcher_icon_item_blue),
-                AppSize.small));
+                AppSize.small, ItemType.LEFT_RIGHT));
         DEFAULT_DEFINED_ICONS.put("org.openintents.filemanager", new AppLiteInfo(
                 "org.openintents.filemanager", "icons/file_management.png",
-                getColor(R.color.orangered), AppSize.large));
+                getColor(R.color.orangered), AppSize.large, ItemType.ONE_LINE));
         DEFAULT_DEFINED_ICONS.put("com.android.browser", new AppLiteInfo("com.android.browser",
-                "icons/browser.png", getColor(R.color.green), AppSize.small));
+                "icons/browser.png", getColor(R.color.green), AppSize.small, ItemType.LEFT_RIGHT));
         DEFAULT_DEFINED_ICONS.put("com.android.calendar", new AppLiteInfo("com.android.calendar",
-                "icons/calender.png", getColor(R.color.launcher_icon_item_blue), AppSize.large));
+                "icons/calender.png", getColor(R.color.launcher_icon_item_blue), AppSize.large, ItemType.ONE_LINE));
         DEFAULT_DEFINED_ICONS.put("com.android.settings", new AppLiteInfo("com.android.settings",
-                "icons/setting.png", getColor(R.color.launcher_icon_item_blue), AppSize.small));
+                "icons/setting.png", getColor(R.color.launcher_icon_item_blue), AppSize.large, ItemType.ONE_LINE));
         DEFAULT_DEFINED_ICONS.put("com.android.deskclock", new AppLiteInfo("com.android.deskclock",
-                "icons/clock.png", getColor(R.color.launcher_icon_item_blue), AppSize.large));
+                "icons/clock.png", getColor(R.color.launcher_icon_item_blue), AppSize.large, ItemType.ONE_LINE));
         DEFAULT_DEFINED_ICONS.put("com.android.gallery3d", new AppLiteInfo("com.android.gallery3d",
-                "icons/picture.png", getColor(R.color.launcher_icon_item_blue), AppSize.small));
+                "icons/picture.png", getColor(R.color.launcher_icon_item_blue), AppSize.large, ItemType.ONE_LINE));
     }
     
     private static int getColor(int colorResId) {
         return LauncherApp.getAppContext().getResources().getColor(colorResId);
     }
     
-    private static Drawable getDefinedIconByPackage(String packageName,Context context){
+    public static Drawable getDefinedIconByPackage(String packageName,Context context){
         if(TextUtils.isEmpty(packageName)){
             return null;
         }
-        if (PACKAGE_ICON_MAPPING.containsKey(packageName)) {
-            return loadDrawableFromAssets(PACKAGE_ICON_MAPPING.get(packageName).getIconPath(), context);
+        if (DEFAULT_DEFINED_ICONS.containsKey(packageName)) {
+            return loadDrawableFromAssets(DEFAULT_DEFINED_ICONS.get(packageName).getIconPath(), context);
         }
         return null;
     }
@@ -73,26 +69,26 @@ public class AppHelper {
         if(TextUtils.isEmpty(packageName)){
             return null;
         }
-        if (PACKAGE_ICON_MAPPING.containsKey(packageName)) {
-            return PACKAGE_ICON_MAPPING.get(packageName);
+        if (appMapping.containsKey(packageName)) {
+            return appMapping.get(packageName);
         }
         return null;
     }
     
-    public static boolean saveAppLiteInfo(AppInfo appInfo) {
+    public static boolean saveAppLiteInfo(AppLiteInfo appInfo) {
         if (appInfo == null) {
             return false;
         }
-        AppLiteInfo appLiteInfo = getAppLiteInfoByPackage(appInfo.getPackageName());
+        AppLiteInfo appLiteInfo = getAppLiteInfoByPackage(appInfo.getPkgName());
         if (appLiteInfo == null) {
-            appLiteInfo = new AppLiteInfo(appInfo.getPackageName(), null, appInfo.getIconBgColor(),
-                    appInfo.getAppSize());
+            appLiteInfo = new AppLiteInfo(appInfo.getPkgName(), null, appInfo.getColor(),
+                    appInfo.getSize(), ItemType.LEFT_RIGHT);
         }else {
-            appLiteInfo.setColor(appInfo.getIconBgColor());
-            appLiteInfo.setSize(appInfo.getAppSize());
+            appLiteInfo.setColor(appInfo.getColor());
+            appLiteInfo.setSize(appInfo.getSize());
         }
-        if(appInfo.getTitle() != null){
-            appLiteInfo.setLabel(appInfo.getTitle().toString());
+        if(appInfo.getLabel() != null){
+            appLiteInfo.setLabel(appInfo.getLabel().toString());
         }
         Logger.d(TAG, "saveAppLiteInfo()[appLiteInfo="+appLiteInfo+"]");
         if (!checkAppInfoExist(appInfo)) {
@@ -104,11 +100,11 @@ public class AppHelper {
                     .getAppContext()
                     .getContentResolver()
                     .update(LauncherTables.TAppLiteInfo.CONTENT_URI, appLiteInfo.toContentValues(),
-                            TAppLiteInfo.PACKAGE_NAME+"='"+appInfo.getPackageName()+"'", null) > 0;
+                            TAppLiteInfo.PACKAGE_NAME+"='"+appInfo.getPkgName()+"'", null) > 0;
         }
     }
     
-    private static boolean checkAppInfoExist(AppInfo appInfo){
+    private static boolean checkAppInfoExist(AppLiteInfo appInfo){
         if(appInfo == null){
             return false;
         }
@@ -116,7 +112,7 @@ public class AppHelper {
         Cursor cursor = null;
         try {
             cursor = LauncherApp.getAppContext().getContentResolver().query
-                    (LauncherTables.TAppLiteInfo.CONTENT_URI, null, TAppLiteInfo.PACKAGE_NAME+"='"+appInfo.getPackageName()+"'", null, null);
+                    (LauncherTables.TAppLiteInfo.CONTENT_URI, null, TAppLiteInfo.PACKAGE_NAME+"='"+appInfo.getPkgName()+"'", null, null);
             exist =  cursor != null && cursor.getCount() > 0;
         } finally{
             if(cursor != null){
@@ -126,81 +122,88 @@ public class AppHelper {
         return exist;
     }
     
-    @SuppressLint("ResourceAsColor")
-    public static AppInfo loadAppInfo(ResolveInfo info,Context context,PackageManager manager){
-        AppInfo application = new AppInfo();
-        application.setIconBgColor(R.color.launcher_icon_item_blue);
-        application.setTitle(info.loadLabel(manager));
+    /*public static AppLiteInfo loadAppInfo(ResolveInfo info,Context context,PackageManager manager){
+        AppLiteInfo application = new AppLiteInfo();
+        application.setColor(R.color.launcher_icon_item_blue);
+        application.setLabel(info.loadLabel(manager).toString());
         application.setActivity(new ComponentName(
                 info.activityInfo.applicationInfo.packageName,
                 info.activityInfo.name),
                 Intent.FLAG_ACTIVITY_NEW_TASK
                         | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
         String pkgName = info.activityInfo.applicationInfo.packageName;
-        application.setPackageName(pkgName);
+        application.setPkgName(pkgName);
         if (PACKAGE_ICON_MAPPING.containsKey(pkgName) && PACKAGE_ICON_MAPPING.get(pkgName) != null) {
             AppLiteInfo liteInfo = PACKAGE_ICON_MAPPING.get(pkgName);
             Drawable definedIcon = getDefinedIconByPackage(
                     liteInfo.getPkgName(), context);
             application.setIcon(definedIcon != null ? definedIcon : info.activityInfo
                     .loadIcon(manager));
-            application.setAppSize(liteInfo.getSize());
+            application.setSize(liteInfo.getSize());
             if(liteInfo.getLabel() != null){
-                application.setTitle(liteInfo.getLabel());
+                application.setLabel(liteInfo.getLabel());
             }
-            application.setIconBgColor(liteInfo.getColor());
+            application.setColor(liteInfo.getColor());
         }
         else {
             application.setIcon(info.activityInfo
                     .loadIcon(manager));
-            application.setAppSize(AppSize.small);
-            application.setIconBgColor(getColor(R.color.launcher_icon_item_blue));
+            application.setSize(AppSize.small);
+            application.setColor(getColor(R.color.launcher_icon_item_blue));
         }
         return application;
-    }
+    }*/
     
-    @SuppressLint("ResourceAsColor")
-    public static AppInfo loadAppInfo(String packageName,Context context,PackageManager manager){
-        AppInfo application = null;
+    public static AppLiteInfo loadAppInfo(String packageName) {
+        Logger.d(
+                TAG,
+                "loadAppInfo()");
+        if (appMapping.containsKey(packageName)) {
+            return appMapping.get(packageName);
+        }
+        return null;
+    }
+/*    public static AppLiteInfo loadAppInfo(String packageName,Context context,PackageManager manager){
+        AppLiteInfo application = null;
         try {
-            application = new AppInfo();
+            application = new AppLiteInfo();
             ApplicationInfo info = manager.getApplicationInfo(packageName,
                     PackageManager.GET_META_DATA);
-            application.setIconBgColor(R.color.launcher_icon_item_blue);
-            application.setTitle(info.loadLabel(manager));
-            application.setPackageName(packageName);
+            application.setColor(R.color.launcher_icon_item_blue);
+            application.setLabel(info.loadLabel(manager).toString());
+            application.setPkgName(packageName);
             Intent it = new Intent(Intent.ACTION_MAIN);
             it.setPackage(packageName);
             it.addCategory(Intent.CATEGORY_LAUNCHER);
             ComponentName ac = it.resolveActivity(manager);
             application.setActivity(ac,
                     Intent.FLAG_ACTIVITY_NEW_TASK
-                            | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-            if (PACKAGE_ICON_MAPPING.containsKey(packageName)
-                    && PACKAGE_ICON_MAPPING.get(packageName) != null) {
-                AppLiteInfo liteInfo = PACKAGE_ICON_MAPPING.get(packageName);
+                    | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+            if (appMapping.containsKey(packageName)
+                    && appMapping.get(packageName) != null) {
+                AppLiteInfo liteInfo = appMapping.get(packageName);
                 Drawable definedIcon = getDefinedIconByPackage(
                         liteInfo.getPkgName(), context);
                 application.setIcon(definedIcon != null ? definedIcon : info
                         .loadIcon(manager));
-                application.setAppSize(liteInfo.getSize());
+                application.setSize(liteInfo.getSize());
                 if(liteInfo.getLabel() != null){
-                    application.setTitle(liteInfo.getLabel());
+                    application.setLabel(liteInfo.getLabel().toString());
                 }
-                application.setIconBgColor(liteInfo.getColor());
+                application.setColor(liteInfo.getColor());
             }
             else {
                 application.setIcon(info
                         .loadIcon(manager));
-                application.setAppSize(AppSize.small);
-                application.setIconBgColor(getColor(R.color.launcher_icon_item_blue));
+                application.setSize(AppSize.small);
+                application.setColor(getColor(R.color.launcher_icon_item_blue));
             }
         } catch (NameNotFoundException e) {
             e.printStackTrace();
         }
         return application;
     }
-    
+*/    
     public static Drawable loadDrawableFromAssets(String iconPath,Context context){
         if(TextUtils.isEmpty(iconPath) || context == null){
             return null;
@@ -228,7 +231,7 @@ public class AppHelper {
         Logger.d(
                 TAG,
                 "initDefinedApps()[PACKAGE_ICON_MAPPING.isEmpty()="
-                        + PACKAGE_ICON_MAPPING.isEmpty() + "]");
+                        + appMapping.isEmpty() + "]");
         if (DEFAULT_DEFINED_ICONS.isEmpty()) {
             return false;
         }
@@ -241,19 +244,28 @@ public class AppHelper {
 
         if (apps != null) {
             final int count = apps.size();
+            List<AppLiteInfo> tmpInfos = new ArrayList<AppLiteInfo>();
             for (int i = 0; i < count; i++) {
                 ResolveInfo info = apps.get(i);
                 if (!DEFAULT_DEFINED_ICONS.containsKey(info.activityInfo.packageName)) {
-                    DEFAULT_DEFINED_ICONS.put(info.activityInfo.packageName, new AppLiteInfo(
+                    AppLiteInfo appLiteInfo = new AppLiteInfo(
                             info.activityInfo.packageName, null,
-                            getColor(R.color.launcher_icon_item_blue), AppSize.small));
+                            getColor(R.color.launcher_icon_item_blue), AppSize.large, ItemType.ONE_LINE);
+                    appLiteInfo.setLabel(info.loadLabel(manager).toString());
+                    tmpInfos.add(appLiteInfo);
+                } else if (DEFAULT_DEFINED_ICONS.containsKey(info.activityInfo.packageName)) {
+                    DEFAULT_DEFINED_ICONS.get(info.activityInfo.packageName).setLabel(
+                            info.loadLabel(manager).toString());
+                    appList.add(DEFAULT_DEFINED_ICONS.get(info.activityInfo.packageName));
                 }
             }
+            if(!tmpInfos.isEmpty()){
+                appList.addAll(tmpInfos);
+            }
         }
-        Collection<AppLiteInfo> collection = DEFAULT_DEFINED_ICONS.values();
         List<ContentValues> values = new ArrayList<ContentValues>();
         int temp = 0;
-        for (Iterator<AppLiteInfo> iter = collection.iterator(); iter.hasNext();) {
+        for (Iterator<AppLiteInfo> iter = appList.iterator(); iter.hasNext();) {
             AppLiteInfo liteInfo = iter.next();
             liteInfo.setSortPositon(temp);
             values.add(liteInfo.toContentValues());
@@ -268,17 +280,23 @@ public class AppHelper {
         Logger.d(
                 TAG,
                 "loadDefinedApp()");
-        Cursor cursor = LauncherApp.getAppContext().getContentResolver()
-                .query(LauncherTables.TAppLiteInfo.CONTENT_URI, null, null, null, LauncherTables.TAppLiteInfo.SORT_POSITION+" DESC");
+        Cursor cursor = LauncherApp
+                .getAppContext()
+                .getContentResolver()
+                .query(LauncherTables.TAppLiteInfo.CONTENT_URI, null, null, null,
+                        LauncherTables.TAppLiteInfo.SORT_POSITION + " ASC");
         try {
             if (cursor != null && cursor.getCount() > 0) {
-                PACKAGE_ICON_MAPPING.clear();
+                appMapping.clear();
+                appList.clear();
                 while (cursor.moveToNext()) {
                     AppLiteInfo appLiteInfo = new AppLiteInfo(cursor);
-                    PACKAGE_ICON_MAPPING.put(appLiteInfo.getPkgName(), appLiteInfo);
+                    appMapping.put(appLiteInfo.getPkgName(), appLiteInfo);
+                    appList.add(appLiteInfo);
+                    Logger.d(TAG, "loadDefinedApp()[appLiteInfo:" + appLiteInfo + "]");
                 }
             }
-            Logger.d(TAG, "loadDefinedApp()[PACKAGE_ICON_MAPPING:"+PACKAGE_ICON_MAPPING+"]");
+            Logger.d(TAG, "loadDefinedApp()[appList:" + appList + "]");
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -286,5 +304,12 @@ public class AppHelper {
                 cursor.close();
             }
         }
+    }
+    
+    public static List<AppLiteInfo> getAppLiteInfos(boolean forceReload){
+        if(forceReload){
+            loadDefinedApp();
+        }
+        return appList;
     }
 }

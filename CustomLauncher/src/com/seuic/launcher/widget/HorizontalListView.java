@@ -27,7 +27,6 @@
 
 package com.seuic.launcher.widget;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
@@ -88,6 +87,9 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
     private int dragOffsetX;
     private int dragOffsetY;
     private ImageView dragImageView; // 拖动item的preview
+    
+    private int dragLeftMargin = 200;
+    private int dragRightMargin;//initial when get window width
 
     private WindowManager windowManager;
     private WindowManager.LayoutParams windowParams;
@@ -95,7 +97,9 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
     private int itemHeight;
 
     boolean flag = false;
-
+    
+    private boolean mStartDrag;
+    
     public void setLongFlag(boolean temp)
     {
         flag = temp;
@@ -168,9 +172,11 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
         if(windowManager == null){
             windowManager = (WindowManager) getContext().getSystemService(
                     Context.WINDOW_SERVICE);// "window"
+            dragRightMargin = windowManager.getDefaultDisplay().getWidth()-dragLeftMargin;
         }
         dragImageView.setTag(true);
         windowManager.addView(dragImageView, windowParams);
+        mStartDrag = true;
     }
     
     private void createDragView(Bitmap bm, int x, int y){
@@ -182,22 +188,19 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
         // 得到preview左上角相对于屏幕的坐标
         windowParams.x = x - dragPointX + dragOffsetX;
         windowParams.y = y - dragPointY + dragOffsetY;
-        // L.l("==================windowParams.y==============="+windowParams.y);
         // 设置宽和高
         windowParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
         windowParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        windowParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+        windowParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
 
         windowParams.format = PixelFormat.TRANSLUCENT;
         windowParams.windowAnimations = 0;
-
+        windowParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+        
         ImageView iv = new ImageView(getContext());
         iv.setImageBitmap(bm);
-        windowManager = (WindowManager) getContext().getSystemService(
-                Context.WINDOW_SERVICE);// "window"
         dragImageView = iv;
     }
     
@@ -323,7 +326,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
                 MeasureSpec.makeMeasureSpec(getHeight(), MeasureSpec.AT_MOST));
     }
 
-    @SuppressLint("DrawAllocation")
     @Override
     protected synchronized void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
@@ -470,7 +472,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
             mScroller.fling(mNextX, 0, (int) -velocityX, 0, 0, mMaxX, 0, 0);
         }
         requestLayout();
-
         return true;
     }
 
@@ -498,10 +499,12 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
         public boolean onScroll(MotionEvent e1, MotionEvent e2,
                 float distanceX, float distanceY) {
             onTouchEvent(e2);
-            synchronized (HorizontalListView.this) {
-                mNextX += (int) distanceX;
+            if(!mStartDrag){
+                synchronized (HorizontalListView.this) {
+                    mNextX += (int) distanceX;
+                }
+                requestLayout();
             }
-            requestLayout();
 
             return true;
         }
@@ -569,7 +572,11 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
             switch (event.getAction())
             {
                 case MotionEvent.ACTION_MOVE:
-                    onDrag(x, y);
+                    if (((AppListAdapter) getAdapter()).getSelectedItem() != null) {
+                        onDrag(x, y);
+                    } else {
+                        stopDrag();
+                    }
                     break;
                 case MotionEvent.ACTION_UP:
                     stopDrag();
@@ -577,7 +584,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
                     break;
             }
         }
-        /*switch (event.getAction()) {
+        /*Delete TMP, here code to play the bounce animation.
+         * switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 if (mLastDownX == 0 && mDistance == 0) {
                     mLastDownX = event.getX();
@@ -612,45 +620,33 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
 
     private void onDrag(int x, int y)
     {
+        AppListAdapter adapter = (AppListAdapter) getAdapter();
+        if(adapter.getSelectedItem() != null){
+            adapter.getSelectedItem().setVisibility(View.INVISIBLE);
+        }
         if (dragImageView != null)
         {
             Object obj = dragImageView.getTag();
             if(obj == null){
                 startDrag();
             }
-            windowParams.alpha = 0.6f;
+            windowParams.alpha = 0.95f;
             windowParams.x = x - dragPointX + dragOffsetX;
             windowParams.y = y - dragPointY + dragOffsetY;
             windowManager.updateViewLayout(dragImageView, windowParams);
         }
-        int tempPosition = pointToPosition(x, y);
-        Logger.d(TAG, "onDrag()[tempPosition=" + tempPosition + ",getFirstVisiblePosition="
-                + getFirstVisiblePosition() + ",getLastVisiblePosition=" + getLastVisiblePosition()
-                + "]");
-        int count = getAdapter().getCount();
-        Logger.d(TAG, "onDrag()[getCount()="+count+",x="+x+"]");
-        
-        if(tempPosition == (mLeftViewIndex+1) && (mLeftViewIndex+1) > 0){
-//            this.scrollTo(x-dragOffsetX, 0);
+        if(x < dragLeftMargin){
+            synchronized (HorizontalListView.this) {
+                mNextX -= (int) itemHeight;
+            }
+            requestLayout();
         }
-        if(tempPosition == (mRightViewIndex-1) && (mRightViewIndex-1)<count){
-//            this.scrollTo(x+dragOffsetX,0);
+        if(x > dragRightMargin){
+            synchronized (HorizontalListView.this) {
+                mNextX += (int) itemHeight;
+            }
+            requestLayout();
         }
-        
-       /* int tempScrollX = x - dragPointX + dragOffsetX;
-        int tempScrollY = y - dragPointY + dragOffsetY;
-
-        if (tempScrollX + itemHeight > 1280)
-        {
-            this.scrollTo(tempScrollX, 0);
-//            this.scrollTo(0, tempScrollY);
-        }
-        else if (pointToPosition(x, y) > 2)
-        {
-//            this.scrollTo(0, tempScrollY - 300);
-            this.scrollTo(tempScrollX, 0);
-        }*/
-
     }
 
     private void onDrop(int x, int y)
@@ -664,6 +660,9 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
             dropPosition = tempPosition;
         }
         ViewGroup endGroup = (ViewGroup) getChildAt(dropPosition);
+        if(endGroup == null){
+            return;
+        }
         AppInfoView matchedView = null;
         for (int i = 0; i < endGroup.getChildCount(); i++) {
             ViewGroup subGroup = (ViewGroup) endGroup.getChildAt(i);
@@ -694,14 +693,18 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
                 }
             }
         }
+        boolean exchanged = false;
         if(matchedView != null && adapter.getSelectedItem() != null){
             DragItemInto src = adapter.getSelectedItem().getDragItemInfo();
             DragItemInto dst = matchedView.getDragItemInfo();
             if(src != null && dst != null && !src.equals(dst)){
-                adapter.exchage(adapter.getSelectedItem(), matchedView);
+                exchanged = adapter.exchange(adapter.getSelectedItem(), matchedView);
             }
         }
-        adapter.clearSelectedItem();
+        if (!exchanged && adapter.getSelectedItem() != null) {
+            adapter.getSelectedItem().setVisibility(View.VISIBLE);
+        }
+        adapter.clearSelected();
     }
 
     private void stopDrag()
@@ -713,6 +716,7 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
         if(dragImageView != null){
             dragImageView = null;
         }
+        mStartDrag = false;
     }
 
     @Override

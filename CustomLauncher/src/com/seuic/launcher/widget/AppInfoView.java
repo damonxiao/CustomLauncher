@@ -20,7 +20,7 @@ import android.widget.TextView;
 
 import com.seuic.launcher.AppInfoEditor;
 import com.seuic.launcher.R;
-import com.seuic.launcher.data.AppInfo;
+import com.seuic.launcher.data.AppLiteInfo;
 import com.seuic.launcher.data.AppItem;
 import com.seuic.launcher.data.AppItem.ItemType;
 import com.seuic.launcher.util.Const;
@@ -30,6 +30,7 @@ public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongC
 
     public interface AppItemSelectedListener{
         void onItemInfoViewSelected(AppInfoView infoView);
+        void clearSelected();
     }
     
     public static class DragItemInto{
@@ -54,7 +55,7 @@ public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongC
     }
     
     
-    private AppInfo mAppInfo;
+    private AppLiteInfo mAppInfo;
 
     private View mViewRoot;
     
@@ -111,6 +112,9 @@ public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongC
                     public void onAnimationEnd(Animation animation) {
                         if(mAppInfo != null && mAppInfo.getIntent() != null){
                             getContext().startActivity(mAppInfo.getIntent());
+                            if (mAppItemSelectedListener != null) {
+                                mAppItemSelectedListener.clearSelected();
+                            }
                         }
                     }
                 });
@@ -119,15 +123,26 @@ public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongC
             case R.id.edit:
                 dismissEditView();
                 Intent edit = new Intent(getContext(),AppInfoEditor.class);
-                edit.putExtra(Const.EXTRA_PACKAGE_NAME, mAppInfo.getPackageName());
+                edit.putExtra(Const.EXTRA_PACKAGE_NAME, mAppInfo.getPkgName());
                 getContext().startActivity(edit);
+                if(mAppItemSelectedListener != null){
+                   mAppItemSelectedListener.clearSelected();
+                }
                 break;
             default:
                 break;
         }
     }
 
-    public void bindData(AppInfo appInfo) {
+    @Override
+    public void setVisibility(int visibility) {
+        super.setVisibility(visibility);
+        if(mAppInfo != null ){
+            mAppInfo.setVisibility(visibility);
+        }
+    }
+    
+    public void bindData(AppLiteInfo appInfo) {
         mAppInfo = appInfo;
         if(mAppInfo == null){
             this.setVisibility(View.INVISIBLE);
@@ -139,11 +154,11 @@ public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongC
             .setImageDrawable(mAppInfo.getIcon());
         }
         if (mAppInfo != null) {
-            findViewById(R.id.icon_view_root).setBackgroundColor(mAppInfo.getIconBgColor());
+            findViewById(R.id.icon_view_root).setBackgroundColor(mAppInfo.getColor());
         }
-        if(mAppInfo != null && mAppInfo.getTitle() != null){
+        if(mAppInfo != null && mAppInfo.getLabel() != null){
             ((TextView) (findViewById(R.id.label)))
-            .setText(mAppInfo.getTitle());
+            .setText(mAppInfo.getLabel());
         }
     }
 
@@ -225,7 +240,7 @@ public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongC
         this.mDragItemInfo = dragItemInfo;
     }
     
-    public AppInfo getAppInfo(){
+    public AppLiteInfo getAppInfo(){
         return mAppInfo;
     }
     

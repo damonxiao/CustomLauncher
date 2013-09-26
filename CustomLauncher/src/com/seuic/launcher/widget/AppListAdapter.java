@@ -5,12 +5,16 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.TranslateAnimation;
+import android.view.animation.Animation.AnimationListener;
 import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 
 import com.seuic.launcher.R;
 import com.seuic.launcher.data.AppItem;
+import com.seuic.launcher.data.AppLiteInfo;
 import com.seuic.launcher.data.AppItem.ItemType;
+import com.seuic.launcher.util.AppHelper;
 import com.seuic.launcher.util.Logger;
 import com.seuic.launcher.widget.AppInfoView.DragItemInto;
 
@@ -67,13 +71,13 @@ public class AppListAdapter extends BaseAdapter implements AppInfoView.AppItemSe
                     oneLineItemView.setOnItemSelectedListener(this);
                     
                     ItemType itemType = item.getItemType();
-                    leftItemView.setDragItemInfo(new DragItemInto(position, count, itemType));
-                    rightItemView.setDragItemInfo(new DragItemInto(position, count, itemType));
-                    oneLineItemView.setDragItemInfo(new DragItemInto(position, count, itemType));
+                    leftItemView.setDragItemInfo(new DragItemInto(position, count, ItemType.LEFT));
+                    rightItemView.setDragItemInfo(new DragItemInto(position, count, ItemType.RIGHT));
+                    oneLineItemView.setDragItemInfo(new DragItemInto(position, count, ItemType.ONE_LINE));
                     View leftRightItemGroup = itemView.findViewById(R.id.app_left_right_item_group);
                     switch (itemType) {
                         case LEFT_RIGHT://one item contains two item
-                            if(item.getRightItem() == null){
+                            /*if(item.getRightItem() == null){
                                 leftRightItemGroup.setVisibility(View.GONE);
                                 oneLineItemView.setVisibility(View.VISIBLE);
                                 oneLineItemView.bindData(item.getLeftItem());
@@ -84,22 +88,28 @@ public class AppListAdapter extends BaseAdapter implements AppInfoView.AppItemSe
                                 oneLineItemView.setVisibility(View.GONE);
                                 leftItemView.bindData(item.getLeftItem());
                                 rightItemView.bindData(item.getRightItem());
-                            }
-                            break;
-                        case LEFT://one item just contains LEFT
+                            }*/
                             leftRightItemGroup.setVisibility(View.VISIBLE);
                             leftItemView.setVisibility(View.VISIBLE);
-                            rightItemView.setVisibility(View.INVISIBLE);
+                            rightItemView.setVisibility(View.VISIBLE);
+                            oneLineItemView.setVisibility(View.GONE);
+                            leftItemView.bindData(item.getLeftItem());
+                            rightItemView.bindData(item.getRightItem());
+                            break;
+                       /* case LEFT://one item just contains LEFT
+                            leftRightItemGroup.setVisibility(View.VISIBLE);
+                            leftItemView.setVisibility(View.VISIBLE);
+                            rightItemView.setVisibility(View.GONE);
                             oneLineItemView.setVisibility(View.GONE);
                             leftItemView.bindData(item.getLeftItem());
                             break;
                         case RIGHT://one item just contains RIGHT
                             leftRightItemGroup.setVisibility(View.VISIBLE);
-                            leftItemView.setVisibility(View.INVISIBLE);
+                            leftItemView.setVisibility(View.GONE);
                             rightItemView.setVisibility(View.VISIBLE);
                             oneLineItemView.setVisibility(View.GONE);
                             rightItemView.bindData(item.getRightItem());
-                            break;
+                            break;*/
                         case ONE_LINE://one item just contains one item and match it.
                             leftRightItemGroup.setVisibility(View.GONE);
                             oneLineItemView.setVisibility(View.VISIBLE);
@@ -127,22 +137,61 @@ public class AppListAdapter extends BaseAdapter implements AppInfoView.AppItemSe
         return mSelectInfoView;
     }
     
-    public void clearSelectedItem(){
-        mSelectInfoView = null;
-    }
-    
-    public void exchage(AppInfoView dragView,AppInfoView dropView){
+    public boolean exchange(AppInfoView dragView,AppInfoView dropView){
         DragItemInto src = dragView.getDragItemInfo();
         DragItemInto dst = dropView.getDragItemInfo();
         if(src != null && dst != null){
             if(src.equals(dst)){
-                return;
+                return false;
             }
-            AppItem srcInfo = getItem(src.pos0).get(src.pos1);
-            AppItem dstInfo = getItem(dst.pos0).get(dst.pos1);
-            getItem(dst.pos0).set(dst.pos1, srcInfo);
-            getItem(src.pos0).set(src.pos1, dstInfo);
-            notifyDataSetChanged();
+            AppLiteInfo srcInfo = getItem(src.pos0).get(src.pos1).getItemByType(src.itemType);
+            AppLiteInfo dstInfo = getItem(dst.pos0).get(dst.pos1).getItemByType(dst.itemType);
+            if(srcInfo != null && dstInfo != null && srcInfo.getSize() == dstInfo.getSize()){
+                int srcSortPosition = srcInfo.getSortPositon();
+                int dstSortPosition = dstInfo.getSortPositon();
+                dstInfo.setSortPositon(srcSortPosition);
+                srcInfo.setSortPositon(dstSortPosition);
+                AppHelper.saveAppLiteInfo(srcInfo);
+                AppHelper.saveAppLiteInfo(dstInfo);
+                return true;
+            }
+            else if(srcInfo != null && dstInfo == null){
+                AppItem dstItem = getItem(dst.pos0).get(dst.pos1);
+                if (dstItem.getLeftItem() == null && dstItem.getRightItem() != null) {
+                    srcInfo.setSortPositon(dstItem.getRightItem().getSortPositon());
+                }
+                if (dstItem.getRightItem() == null && dstItem.getLeftItem() != null) {
+                    srcInfo.setSortPositon(dstItem.getLeftItem().getSortPositon());
+                }
+                AppHelper.saveAppLiteInfo(srcInfo);
+                return true;
+            }
         }
+        return false;
+    }
+    
+    private void playExchangeAnimation(AppInfoView dragView,AppInfoView dropView,AnimationListener listener){
+        if(dragView == null || dropView == null){
+            return;
+        }
+        int locationDragView[] = new int[2];
+        dragView.getLocationOnScreen(locationDragView);
+        int locationDropView[] = new int[2];
+        dropView.getLocationOnScreen(locationDropView);
+        TranslateAnimation dragViewAnim = new TranslateAnimation(locationDragView[0],
+                locationDropView[0], locationDragView[1], locationDropView[1]);
+        dragViewAnim.setDuration(5000);
+        dragViewAnim.setAnimationListener(listener);
+        dragView.startAnimation(dragViewAnim);
+
+        TranslateAnimation dropViewAnim = new TranslateAnimation(locationDropView[0],
+                locationDragView[0], locationDropView[1], locationDragView[1]);
+        dropViewAnim.setDuration(5000);
+        dropView.startAnimation(dropViewAnim);
+    }
+
+    @Override
+    public void clearSelected() {
+        mSelectInfoView = null;
     }
 }
