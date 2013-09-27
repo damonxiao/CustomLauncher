@@ -51,7 +51,7 @@ public class AppHelper {
                 "icons/picture.png", getColor(R.color.launcher_icon_item_blue), AppSize.large, ItemType.ONE_LINE));
     }
     
-    private static int getColor(int colorResId) {
+    public static int getColor(int colorResId) {
         return LauncherApp.getAppContext().getResources().getColor(colorResId);
     }
     
@@ -102,6 +102,18 @@ public class AppHelper {
                     .update(LauncherTables.TAppLiteInfo.CONTENT_URI, appLiteInfo.toContentValues(),
                             TAppLiteInfo.PACKAGE_NAME+"='"+appInfo.getPkgName()+"'", null) > 0;
         }
+    }
+    
+    public static boolean deleteAppInfo(String packageName){
+        if(packageName == null){
+            Logger.e(TAG, "deleteAppInfo()[package name is null]");
+            return false;
+        }
+        return LauncherApp
+                .getAppContext()
+                .getContentResolver()
+                .delete(LauncherTables.TAppLiteInfo.CONTENT_URI,
+                        TAppLiteInfo.PACKAGE_NAME + "='" + packageName + "'", null) > 0;
     }
     
     private static boolean checkAppInfoExist(AppLiteInfo appInfo){
@@ -311,5 +323,18 @@ public class AppHelper {
             loadDefinedApp();
         }
         return appList;
+    }
+    
+    public static int getMaxAppLiteInfoPos() {
+        if (appList.isEmpty()) {
+            return 0;
+        }
+        int posFirst = appList.get(0).getSortPositon();
+        if (appList.size() > 1) {
+            int posLast = appList.get(appList.size() - 1).getSortPositon();
+            return posFirst >= posLast ? posFirst : posLast;
+        } else {
+            return posFirst;
+        }
     }
 }

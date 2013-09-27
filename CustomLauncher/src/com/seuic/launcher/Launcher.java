@@ -23,7 +23,7 @@ import com.seuic.launcher.util.LauncherTables.TAppLiteInfo;
 import com.seuic.launcher.util.Logger;
 import com.seuic.launcher.widget.AppListAdapter;
 import com.seuic.launcher.widget.HorizontalListView;
-
+import android.widget.FrameLayout;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +40,9 @@ public class Launcher extends Activity{
     private PackageStateReceiver mPackageStateReceiver;
     
     private static final int MSG_SCREEN_OUT_TIME = 1;
-    private static final long SCREEN_OUT_TIME_DURATION = 1000*60;
+    private static final long SCREEN_OUT_TIME_DURATION = 1000*60*60;
+    
+    private static final String PACKAGE_DATA_PREFIX = "package:";
     
     private Handler mHandler = new Handler(){
         public void handleMessage(android.os.Message msg) {
@@ -78,7 +80,9 @@ public class Launcher extends Activity{
             }
         });
         loadApplications(false);
-        mAdapter = new AppListAdapter(mAllApps, this);
+        mAdapter = new AppListAdapter(mAllApps, this,
+                (FrameLayout) findViewById(R.id.drag_view_anim_contianer),
+                (FrameLayout) findViewById(R.id.drop_view_anim_contianer));
         mAllAppsList.setAdapter(mAdapter);
         regReceiver();
         getContentResolver().registerContentObserver(TAppLiteInfo.CONTENT_URI, true, mAppLiteInfoObserver);
@@ -258,11 +262,22 @@ public class Launcher extends Activity{
         public void onReceive(Context context, Intent intent) {
             Logger.d(TAG, "PackageStateReceiver.onReceive() intent=" + intent);
             final String action = intent.getAction();
-
-            if (Intent.ACTION_PACKAGE_CHANGED.equals(action)
-                    || Intent.ACTION_PACKAGE_REMOVED.equals(action)
-                    || Intent.ACTION_PACKAGE_ADDED.equals(action)) {
-                reloadApps();
+            if(Intent.ACTION_PACKAGE_ADDED.equals(action)){
+                String pkgName = intent.getDataString();
+                if(pkgName != null && pkgName.startsWith(PACKAGE_DATA_PREFIX)){
+                    pkgName = pkgName.replace(PACKAGE_DATA_PREFIX, "");
+                }
+                AppLiteInfo appInfo = new AppLiteInfo(pkgName, null,
+                        AppHelper.getColor(R.color.launcher_icon_item_blue), AppSize.large,
+                        AppItem.ItemType.LEFT_RIGHT);
+                appInfo.setSortPositon(AppHelper.getMaxAppLiteInfoPos());
+                AppHelper.saveAppLiteInfo(appInfo);
+            }else if(Intent.ACTION_PACKAGE_REMOVED.equals(action)){
+                String pkgName = intent.getDataString();
+                if(pkgName != null && pkgName.startsWith(PACKAGE_DATA_PREFIX)){
+                    pkgName = pkgName.replace(PACKAGE_DATA_PREFIX, "");
+                }
+                AppHelper.deleteAppInfo(pkgName);
             }
         }
         

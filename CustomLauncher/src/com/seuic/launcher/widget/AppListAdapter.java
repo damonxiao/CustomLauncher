@@ -2,14 +2,21 @@
 package com.seuic.launcher.widget;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 import android.view.animation.Animation.AnimationListener;
 import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.seuic.launcher.LauncherApp;
 import com.seuic.launcher.R;
 import com.seuic.launcher.data.AppItem;
 import com.seuic.launcher.data.AppLiteInfo;
@@ -28,10 +35,16 @@ public class AppListAdapter extends BaseAdapter implements AppInfoView.AppItemSe
     
     private AppInfoView mSelectInfoView;
     
-    public AppListAdapter(List<List<AppItem>> items, Context context) {
+    private FrameLayout mDragViewAnimContianer;
+    private FrameLayout mDropViewAnimContianer;
+    
+    public AppListAdapter(List<List<AppItem>> items, Context context, FrameLayout dragViewAnimContianer,
+            FrameLayout dropViewAnimContianer) {
         super();
         this.mItems = items;
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mDragViewAnimContianer = dragViewAnimContianer;
+        mDropViewAnimContianer = dropViewAnimContianer;
     }
 
     public void refreshData(List<List<AppItem>> allApps){
@@ -53,7 +66,7 @@ public class AppListAdapter extends BaseAdapter implements AppInfoView.AppItemSe
     public long getItemId(int position) {
         return position;
     }
-
+    
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         convertView = mInflater.inflate(R.layout.app_item_group, null);;
@@ -178,18 +191,70 @@ public class AppListAdapter extends BaseAdapter implements AppInfoView.AppItemSe
         dragView.getLocationOnScreen(locationDragView);
         int locationDropView[] = new int[2];
         dropView.getLocationOnScreen(locationDropView);
-        TranslateAnimation dragViewAnim = new TranslateAnimation(locationDragView[0],
-                locationDropView[0], locationDragView[1], locationDropView[1]);
+        TranslateAnimation dragViewAnim = new TranslateAnimation(0,
+                locationDropView[0] - locationDragView[0], 0, locationDropView[1]
+                        - locationDragView[1]);
         dragViewAnim.setDuration(5000);
-        dragViewAnim.setAnimationListener(listener);
-        dragView.startAnimation(dragViewAnim);
-
-        TranslateAnimation dropViewAnim = new TranslateAnimation(locationDropView[0],
-                locationDragView[0], locationDropView[1], locationDragView[1]);
-        dropViewAnim.setDuration(5000);
-        dropView.startAnimation(dropViewAnim);
+        dragViewAnim.setFillAfter(true);
+        dragViewAnim.setAnimationListener(new AnimationListener() {
+            
+            @Override
+            public void onAnimationStart(Animation animation) {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+                // TODO Auto-generated method stub
+                
+            }
+            
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mDragViewAnimContianer.removeAllViews();
+            }
+        });
+//        dragView.startAnimation(dragViewAnim);
+        
+        mDragViewAnimContianer.removeAllViews();
+        mDragViewAnimContianer.setX(locationDragView[0]);
+        mDragViewAnimContianer.setY(locationDragView[1]);
+        mDragViewAnimContianer.addView(createCacheView(dragView));
+        mDragViewAnimContianer.postInvalidate();
+        mDragViewAnimContianer.bringToFront();
+        dragView.setVisibility(View.INVISIBLE);
+        mDragViewAnimContianer.startAnimation(dragViewAnim);
+        
+//        TranslateAnimation dropViewAnim = new TranslateAnimation(0,
+//                locationDragView[0] - locationDropView[0], 0, locationDragView[1]
+//                        - locationDropView[1]);
+//        dropViewAnim.setDuration(5000);
+//        dropViewAnim.setFillAfter(true);
+////        dropView.startAnimation(dropViewAnim);
+//        mDropViewAnimContianer.removeAllViews();
+//        mDropViewAnimContianer.setX(locationDropView[0]);
+//        mDropViewAnimContianer.setY(locationDropView[1]);
+//        mDropViewAnimContianer.addView(createCacheView(dropView));
+//        mDropViewAnimContianer.postInvalidate();
+//        mDropViewAnimContianer.bringToFront();
+//        dropView.setVisibility(View.INVISIBLE);
+//        mDropViewAnimContianer.startAnimation(dropViewAnim);
+//        
+//        ScaleAnimation scaleIn = (ScaleAnimation) AnimationUtils.loadAnimation(LauncherApp.getAppContext(), R.anim.scale_in);
+//        scaleIn.setFillAfter(true);
+//        dropView.startAnimation(dragViewAnim);
     }
 
+    private ImageView createCacheView(View itemView){
+        itemView.destroyDrawingCache();
+        itemView.setDrawingCacheEnabled(true);
+        Bitmap bm = Bitmap.createBitmap(itemView.getDrawingCache());
+        ImageView iv = new ImageView(LauncherApp.getAppContext());
+        iv.setImageBitmap(bm);
+        return iv;
+    }
+    
     @Override
     public void clearSelected() {
         mSelectInfoView = null;

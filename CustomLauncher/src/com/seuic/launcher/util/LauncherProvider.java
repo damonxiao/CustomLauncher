@@ -66,7 +66,12 @@ public class LauncherProvider extends ContentProvider {
     
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        throw new UnsupportedOperationException();
+        SqlArguments args = new SqlArguments(uri, selection, selectionArgs);
+        SQLiteDatabase db = mSqliteHelper.getWritableDatabase();
+        int count = db.delete(args.table, args.where, args.args);
+        if (count > 0)
+            getContext().getContentResolver().notifyChange(uri, null);
+        return count;
     }
 
     @Override
@@ -164,7 +169,8 @@ public class LauncherProvider extends ContentProvider {
         SqlArguments args = new SqlArguments(uri, selection, selectionArgs);
         SQLiteDatabase db = mSqliteHelper.getWritableDatabase();
         int count = db.update(args.table, values, args.where, args.args);
-        if (count > 0) getContext().getContentResolver().notifyChange(uri, null);
+        if (count > 0)
+            getContext().getContentResolver().notifyChange(uri, null);
         return count;
     }
     
