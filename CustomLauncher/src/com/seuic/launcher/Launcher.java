@@ -270,7 +270,8 @@ public class Launcher extends Activity{
                 AppLiteInfo appInfo = new AppLiteInfo(pkgName, null,
                         AppHelper.getColor(R.color.launcher_icon_item_blue), AppSize.large,
                         AppItem.ItemType.LEFT_RIGHT);
-                appInfo.setSortPositon(AppHelper.getMaxAppLiteInfoPos());
+                appInfo.setSortPositon(AppHelper.getMaxAppLiteInfoPos()+1);
+                appInfo.setLabel(AppHelper.loadAppLabel(pkgName));
                 AppHelper.saveAppLiteInfo(appInfo);
             }else if(Intent.ACTION_PACKAGE_REMOVED.equals(action)){
                 String pkgName = intent.getDataString();

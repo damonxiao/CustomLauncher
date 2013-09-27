@@ -77,29 +77,19 @@ public class AppHelper {
     
     public static boolean saveAppLiteInfo(AppLiteInfo appInfo) {
         if (appInfo == null) {
+            Logger.d(TAG, "saveAppLiteInfo()[appInfo is null]");
             return false;
         }
-        AppLiteInfo appLiteInfo = getAppLiteInfoByPackage(appInfo.getPkgName());
-        if (appLiteInfo == null) {
-            appLiteInfo = new AppLiteInfo(appInfo.getPkgName(), null, appInfo.getColor(),
-                    appInfo.getSize(), ItemType.LEFT_RIGHT);
-        }else {
-            appLiteInfo.setColor(appInfo.getColor());
-            appLiteInfo.setSize(appInfo.getSize());
-        }
-        if(appInfo.getLabel() != null){
-            appLiteInfo.setLabel(appInfo.getLabel().toString());
-        }
-        Logger.d(TAG, "saveAppLiteInfo()[appLiteInfo="+appLiteInfo+"]");
+        Logger.d(TAG, "saveAppLiteInfo()[appLiteInfo="+appInfo+"]");
         if (!checkAppInfoExist(appInfo)) {
             LauncherApp.getAppContext().getContentResolver()
-                    .insert(LauncherTables.TAppLiteInfo.CONTENT_URI, appLiteInfo.toContentValues());
+                    .insert(LauncherTables.TAppLiteInfo.CONTENT_URI, appInfo.toContentValues());
             return true;
         } else {
             return LauncherApp
                     .getAppContext()
                     .getContentResolver()
-                    .update(LauncherTables.TAppLiteInfo.CONTENT_URI, appLiteInfo.toContentValues(),
+                    .update(LauncherTables.TAppLiteInfo.CONTENT_URI, appInfo.toContentValues(),
                             TAppLiteInfo.PACKAGE_NAME+"='"+appInfo.getPkgName()+"'", null) > 0;
         }
     }
@@ -134,38 +124,6 @@ public class AppHelper {
         return exist;
     }
     
-    /*public static AppLiteInfo loadAppInfo(ResolveInfo info,Context context,PackageManager manager){
-        AppLiteInfo application = new AppLiteInfo();
-        application.setColor(R.color.launcher_icon_item_blue);
-        application.setLabel(info.loadLabel(manager).toString());
-        application.setActivity(new ComponentName(
-                info.activityInfo.applicationInfo.packageName,
-                info.activityInfo.name),
-                Intent.FLAG_ACTIVITY_NEW_TASK
-                        | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-        String pkgName = info.activityInfo.applicationInfo.packageName;
-        application.setPkgName(pkgName);
-        if (PACKAGE_ICON_MAPPING.containsKey(pkgName) && PACKAGE_ICON_MAPPING.get(pkgName) != null) {
-            AppLiteInfo liteInfo = PACKAGE_ICON_MAPPING.get(pkgName);
-            Drawable definedIcon = getDefinedIconByPackage(
-                    liteInfo.getPkgName(), context);
-            application.setIcon(definedIcon != null ? definedIcon : info.activityInfo
-                    .loadIcon(manager));
-            application.setSize(liteInfo.getSize());
-            if(liteInfo.getLabel() != null){
-                application.setLabel(liteInfo.getLabel());
-            }
-            application.setColor(liteInfo.getColor());
-        }
-        else {
-            application.setIcon(info.activityInfo
-                    .loadIcon(manager));
-            application.setSize(AppSize.small);
-            application.setColor(getColor(R.color.launcher_icon_item_blue));
-        }
-        return application;
-    }*/
-    
     public static AppLiteInfo loadAppInfo(String packageName) {
         Logger.d(
                 TAG,
@@ -175,47 +133,20 @@ public class AppHelper {
         }
         return null;
     }
-/*    public static AppLiteInfo loadAppInfo(String packageName,Context context,PackageManager manager){
-        AppLiteInfo application = null;
-        try {
-            application = new AppLiteInfo();
-            ApplicationInfo info = manager.getApplicationInfo(packageName,
-                    PackageManager.GET_META_DATA);
-            application.setColor(R.color.launcher_icon_item_blue);
-            application.setLabel(info.loadLabel(manager).toString());
-            application.setPkgName(packageName);
-            Intent it = new Intent(Intent.ACTION_MAIN);
-            it.setPackage(packageName);
-            it.addCategory(Intent.CATEGORY_LAUNCHER);
-            ComponentName ac = it.resolveActivity(manager);
-            application.setActivity(ac,
-                    Intent.FLAG_ACTIVITY_NEW_TASK
-                    | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-            if (appMapping.containsKey(packageName)
-                    && appMapping.get(packageName) != null) {
-                AppLiteInfo liteInfo = appMapping.get(packageName);
-                Drawable definedIcon = getDefinedIconByPackage(
-                        liteInfo.getPkgName(), context);
-                application.setIcon(definedIcon != null ? definedIcon : info
-                        .loadIcon(manager));
-                application.setSize(liteInfo.getSize());
-                if(liteInfo.getLabel() != null){
-                    application.setLabel(liteInfo.getLabel().toString());
-                }
-                application.setColor(liteInfo.getColor());
-            }
-            else {
-                application.setIcon(info
-                        .loadIcon(manager));
-                application.setSize(AppSize.small);
-                application.setColor(getColor(R.color.launcher_icon_item_blue));
-            }
-        } catch (NameNotFoundException e) {
-            e.printStackTrace();
+
+    public static String loadAppLabel(String packageName) {
+        // initial needed data
+        Intent it = new Intent(Intent.ACTION_MAIN);
+        it.setPackage(packageName);
+        it.addCategory(Intent.CATEGORY_LAUNCHER);
+        PackageManager pkgMgr = LauncherApp.getAppContext().getPackageManager();
+        ResolveInfo info = pkgMgr.resolveActivity(it, PackageManager.GET_RESOLVED_FILTER);
+        if(info != null){
+            return info.activityInfo.loadLabel(pkgMgr).toString();
         }
-        return application;
+        return null;
     }
-*/    
+    
     public static Drawable loadDrawableFromAssets(String iconPath,Context context){
         if(TextUtils.isEmpty(iconPath) || context == null){
             return null;
