@@ -463,6 +463,39 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
     public boolean dispatchTouchEvent(MotionEvent ev) {
         boolean handled = super.dispatchTouchEvent(ev);
         handled |= mGesture.onTouchEvent(ev);
+        
+       //here code to play the bounce animation.
+        switch (ev.getAction()) {
+          case MotionEvent.ACTION_DOWN:
+              if (mLastDownX == 0 && mDistance == 0) {
+                  mLastDownX = ev.getX();
+              }
+          case MotionEvent.ACTION_CANCEL:
+              break;
+          case MotionEvent.ACTION_UP:
+              if (mDistance != 0) {
+                  mStep = 1;
+                  mPositive = (mDistance >= 0);
+                  post(this);
+                  return true;
+              }
+          case MotionEvent.ACTION_MOVE:
+              if (mLastDownX != 0f) {
+                  mDistance = (int) (mLastDownX - ev.getX());
+                  if ((mDistance < 0 && mLeftViewIndex == -1 && getChildAt(0).getLeft() == 0)
+                          ||
+                          (mRightViewIndex == getCount() && mDistance > 0)) {
+                      mDistance /= 3;
+                      scrollTo(mDistance, 0);
+                      return true;
+                  }
+              }
+              break;
+          default:
+              break;
+      }
+        
+        
         return handled;
     }
 
@@ -561,9 +594,9 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        Logger.d(TAG, "onDrag()[mLeftViewIndex="
+        Logger.d(TAG, "onTouchEvent()[mLeftViewIndex="
                 + mLeftViewIndex + ",mRightViewIndex=" + mRightViewIndex
-                + "]");
+                + "\nevent.getAction()="+event.getAction()+"]");
         if (dragImageView != null
                 && dragPosition != AdapterView.INVALID_POSITION)
         {
@@ -583,39 +616,13 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
                     onDrop(x, y);
                     break;
             }
+            return true;
         }
-        /*Delete TMP, here code to play the bounce animation.
-         * switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                if (mLastDownX == 0 && mDistance == 0) {
-                    mLastDownX = event.getX();
-                    return true;
-                }
-            case MotionEvent.ACTION_CANCEL:
-                break;
-            case MotionEvent.ACTION_UP:
-                if (mDistance != 0) {
-                    mStep = 1;
-                    mPositive = (mDistance >= 0);
-                    post(this);
-                    return true;
-                }
-            case MotionEvent.ACTION_MOVE:
-                if (mLastDownX != 0f) {
-                    mDistance = (int) (mLastDownX - event.getY());
-                    if ((mDistance < 0 && getFirstVisiblePosition() == 0 && getChildAt(0).getLeft() == 0)
-                            ||
-                            (getLastVisiblePosition() == getCount() - 1 && mDistance > 0)) {
-                        mDistance /= 2;
-                        scrollTo(mDistance, 0);
-                        return true;
-                    }
-                }
-                break;
-            default:
-                break;
-        }*/
         return super.onTouchEvent(event);
+    }
+    
+    public int getCount() {
+        return getAdapter().getCount();
     }
 
     private void onDrag(int x, int y)
