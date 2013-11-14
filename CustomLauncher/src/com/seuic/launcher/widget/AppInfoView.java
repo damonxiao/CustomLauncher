@@ -4,10 +4,12 @@ package com.seuic.launcher.widget;
 import android.content.Context;
 import android.content.Intent;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.animation.Animation;
@@ -16,6 +18,7 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.ScaleAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.seuic.launcher.AppInfoEditor;
@@ -23,6 +26,7 @@ import com.seuic.launcher.R;
 import com.seuic.launcher.data.AppLiteInfo;
 import com.seuic.launcher.data.AppItem;
 import com.seuic.launcher.data.AppItem.ItemType;
+import com.seuic.launcher.data.AppLiteInfo.AppSize;
 import com.seuic.launcher.util.Const;
 import com.seuic.launcher.util.Logger;
 
@@ -65,6 +69,8 @@ public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongC
     
     private DragItemInto mDragItemInfo;
     
+    private int mScreenW;
+    
     public AppInfoView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         LayoutInflater.from(context).inflate(R.layout.icon_view, this);
@@ -75,6 +81,12 @@ public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongC
         
         mEditView = findViewById(R.id.edit);
         mEditView.setOnClickListener(this);
+        
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(outMetrics);
+        mScreenW = outMetrics.widthPixels > outMetrics.heightPixels ? outMetrics.heightPixels
+                : outMetrics.widthPixels;
     }
 
     public AppInfoView(Context context, AttributeSet attrs) {
@@ -147,6 +159,25 @@ public class AppInfoView extends FrameLayout implements OnClickListener ,OnLongC
         if(mAppInfo == null){
             this.setVisibility(View.INVISIBLE);
             return;
+        }
+        
+        //initial app item size here
+        int height = mScreenW/3+5;
+        if (getLayoutParams() != null && getLayoutParams().height != height) {
+            getLayoutParams().height = height;
+            if (mAppInfo.getSize() == AppSize.small) {
+                getLayoutParams().width = height;
+            } else if (mAppInfo.getSize() == AppSize.large) {
+                getLayoutParams().width = height * 2;
+            }
+        } else if (getLayoutParams() == null) {
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(height, height);
+            if (mAppInfo.getSize() == AppSize.small) {
+                layoutParams.width = layoutParams.height;
+            } else if (mAppInfo.getSize() == AppSize.large) {
+                layoutParams.width = layoutParams.height * 2;
+            }
+            setLayoutParams(layoutParams);
         }
         this.setVisibility(View.VISIBLE);
         if(mAppInfo != null && mAppInfo.getIcon() != null){

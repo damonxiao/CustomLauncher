@@ -31,6 +31,8 @@ public class AppListAdapter extends BaseAdapter implements AppInfoView.AppItemSe
     
     private List<List<AppItem>> mItems;
 
+    private Context mContext;
+    
     private LayoutInflater mInflater;
     
     private AppInfoView mSelectInfoView;
@@ -43,6 +45,7 @@ public class AppListAdapter extends BaseAdapter implements AppInfoView.AppItemSe
         super();
         this.mItems = items;
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mContext = context;
         mDragViewAnimContianer = dragViewAnimContianer;
         mDropViewAnimContianer = dropViewAnimContianer;
     }

@@ -100,6 +100,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
     
     private boolean mStartDrag;
     
+    private boolean mInEditMode;
+    
     public void setLongFlag(boolean temp)
     {
         flag = temp;
@@ -461,40 +463,43 @@ public class HorizontalListView extends AdapterView<ListAdapter> implements Runn
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
+        
         boolean handled = super.dispatchTouchEvent(ev);
         handled |= mGesture.onTouchEvent(ev);
         
-       //here code to play the bounce animation.
-        switch (ev.getAction()) {
-          case MotionEvent.ACTION_DOWN:
-              if (mLastDownX == 0 && mDistance == 0) {
-                  mLastDownX = ev.getX();
-              }
-          case MotionEvent.ACTION_CANCEL:
-              break;
-          case MotionEvent.ACTION_UP:
-              if (mDistance != 0) {
-                  mStep = 1;
-                  mPositive = (mDistance >= 0);
-                  post(this);
-                  return true;
-              }
-          case MotionEvent.ACTION_MOVE:
-              if (mLastDownX != 0f) {
-                  mDistance = (int) (mLastDownX - ev.getX());
-                  if ((mDistance < 0 && mLeftViewIndex == -1 && getChildAt(0).getLeft() == 0)
-                          ||
-                          (mRightViewIndex == getCount() && mDistance > 0)) {
-                      mDistance /= 3;
-                      scrollTo(mDistance, 0);
-                      return true;
-                  }
-              }
-              break;
-          default:
-              break;
-      }
-        
+        //in edit or drag mode , don't handle scroll list
+        if(!mStartDrag && ((AppListAdapter)getAdapter()).getSelectedItem() == null){
+            //here code to play the bounce animation.
+            switch (ev.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    if (mLastDownX == 0 && mDistance == 0) {
+                        mLastDownX = ev.getX();
+                    }
+                case MotionEvent.ACTION_CANCEL:
+                    break;
+                case MotionEvent.ACTION_UP:
+                    if (mDistance != 0) {
+                        mStep = 1;
+                        mPositive = (mDistance >= 0);
+                        post(this);
+                        return true;
+                    }
+                case MotionEvent.ACTION_MOVE:
+                    if (mLastDownX != 0f) {
+                        mDistance = (int) (mLastDownX - ev.getX());
+                        if ((mDistance < 0 && mLeftViewIndex == -1 && getChildAt(0).getLeft() == 0)
+                                ||
+                                (mRightViewIndex == getCount() && mDistance > 0)) {
+                            mDistance /= 3;
+                            scrollTo(mDistance, 0);
+                            return true;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
         
         return handled;
     }

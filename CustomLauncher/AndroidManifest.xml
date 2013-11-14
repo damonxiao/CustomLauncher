@@ -46,7 +46,8 @@
           android:allowBackup="false">
         <activity android:name="com.seuic.launcher.Launcher"
                 android:launchMode="singleInstance"
-                android:stateNotNeeded="true">
+                android:stateNotNeeded="true"
+                android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
@@ -59,7 +60,8 @@
             android:name="com.seuic.launcher.AppInfoEditor"
             android:theme="@android:style/Theme.Dialog" 
             android:label="@string/modify_icon_info"
-            android:windowSoftInputMode="stateHidden|adjustPan">
+            android:windowSoftInputMode="stateHidden|adjustPan"
+            android:screenOrientation="landscape">
         </activity>
         <activity
             android:name="com.seuic.launcher.Albums">
