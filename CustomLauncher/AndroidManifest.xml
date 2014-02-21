@@ -40,7 +40,7 @@
         android:targetSdkVersion="17" />
 
     <application android:label="@string/home_title"
-          android:icon="@drawable/ic_launcher_home"
+          android:icon="@mipmap/ic_launcher_home"
           android:theme="@style/AppBaseTheme"
           android:name="com.seuic.launcher.LauncherApp" 
           android:allowBackup="false">
